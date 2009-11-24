@@ -116,7 +116,7 @@ void Highscores_Update(void) {
 
 				new_place->score = ent->client->resp.score;
 				strcpy(new_place->name, ent->client->pers.netname);
-				sprintf(new_place->date, "%02d/%02d/%02d", tm->tm_mon + 1, tm->tm_mday, tm->tm_year);
+				sprintf(new_place->date, "%02d/%02d/%04d", tm->tm_mon + 1, tm->tm_mday, 1900 + tm->tm_year);
 
 				new_place->next = place;
 				new_place->prev = place->prev;
@@ -143,7 +143,7 @@ void Highscores_Update(void) {
 
 			new_place->score = ent->client->resp.score;
 			strcpy(new_place->name, ent->client->pers.netname);
-			sprintf(new_place->date, "%02d/%02d/%02d", tm->tm_mon + 1, tm->tm_mday, tm->tm_year);
+			sprintf(new_place->date, "%02d/%02d/%04d", tm->tm_mon + 1, tm->tm_mday, 1900 + tm->tm_year);
 
 			if(!place)
 				first_place = new_place;
