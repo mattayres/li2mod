@@ -60,7 +60,11 @@ void SP_target_crosslevel_trigger (edict_t *ent);
 void SP_target_crosslevel_target (edict_t *ent);
 void SP_target_laser (edict_t *self);
 void SP_target_help (edict_t *ent);
-void SP_target_actor (edict_t *ent);
+
+//WF
+//void SP_target_actor (edict_t *ent);
+void SP_target_actor (edict_t *ent) { G_FreeEdict(ent); }
+
 void SP_target_lightramp (edict_t *self);
 void SP_target_earthquake (edict_t *ent);
 void SP_target_character (edict_t *ent);
@@ -80,11 +84,19 @@ void SP_point_combat (edict_t *self);
 void SP_misc_explobox (edict_t *self);
 void SP_misc_banner (edict_t *self);
 void SP_misc_satellite_dish (edict_t *self);
-void SP_misc_actor (edict_t *self);
+
+//WF
+//void SP_misc_actor (edict_t *self);
+void SP_misc_actor (edict_t *self) { G_FreeEdict(self); }
+
 void SP_misc_gib_arm (edict_t *self);
 void SP_misc_gib_leg (edict_t *self);
 void SP_misc_gib_head (edict_t *self);
-void SP_misc_insane (edict_t *self);
+
+//WF
+//void SP_misc_insane (edict_t *self);
+void SP_misc_insane (edict_t *self) { G_FreeEdict(self); }
+
 void SP_misc_deadsoldier (edict_t *self);
 void SP_misc_viper (edict_t *self);
 void SP_misc_viper_bomb (edict_t *self);
@@ -97,6 +109,8 @@ void SP_misc_eastertank (edict_t *self);
 void SP_misc_easterchick (edict_t *self);
 void SP_misc_easterchick2 (edict_t *self);
 
+//WF
+/*
 void SP_monster_berserk (edict_t *self);
 void SP_monster_gladiator (edict_t *self);
 void SP_monster_gunner (edict_t *self);
@@ -118,6 +132,29 @@ void SP_monster_supertank (edict_t *self);
 void SP_monster_boss2 (edict_t *self);
 void SP_monster_jorg (edict_t *self);
 void SP_monster_boss3_stand (edict_t *self);
+*/
+void SP_monster_berserk (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_gladiator (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_gunner (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_infantry (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_soldier_light (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_soldier (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_soldier_ss (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_tank (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_medic (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_flipper (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_chick (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_parasite (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_flyer (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_brain (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_floater (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_hover (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_mutant (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_supertank (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_boss2 (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_jorg (edict_t *self) { G_FreeEdict(self); }
+void SP_monster_boss3_stand (edict_t *self) { G_FreeEdict(self); }
+//WF
 
 void SP_monster_commander_body (edict_t *self);
 
@@ -136,6 +173,10 @@ spawn_t	spawns[] = {
 	{"info_player_deathmatch", SP_info_player_deathmatch},
 	{"info_player_coop", SP_info_player_coop},
 	{"info_player_intermission", SP_info_player_intermission},
+//ZOID
+	{"info_player_team1", SP_info_player_team1},
+	{"info_player_team2", SP_info_player_team2},
+//ZOID
 
 	{"func_plat", SP_func_plat},
 	{"func_button", SP_func_button},
@@ -199,6 +240,10 @@ spawn_t	spawns[] = {
 
 	{"misc_explobox", SP_misc_explobox},
 	{"misc_banner", SP_misc_banner},
+//ZOID
+	{"misc_ctf_banner", SP_misc_ctf_banner},
+	{"misc_ctf_small_banner", SP_misc_ctf_small_banner},
+//ZOID
 	{"misc_satellite_dish", SP_misc_satellite_dish},
 	{"misc_actor", SP_misc_actor},
 	{"misc_gib_arm", SP_misc_gib_arm},
@@ -487,7 +532,9 @@ void G_FindTeams (void)
 		}
 	}
 
-	gi.dprintf ("%i teams with %i entities\n", c, c2);
+//WF
+//	gi.dprintf ("%i teams with %i entities\n", c, c2);
+//WF
 }
 
 /*
@@ -577,13 +624,23 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 					}
 			}
 
+			//WF
+			if(!Var_SpawnEntity(ent)) {
+				G_FreeEdict(ent);
+				inhibit++;
+				continue;
+			}
+			//WF
+
 			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY|SPAWNFLAG_NOT_MEDIUM|SPAWNFLAG_NOT_HARD|SPAWNFLAG_NOT_COOP|SPAWNFLAG_NOT_DEATHMATCH);
 		}
 
 		ED_CallSpawn (ent);
 	}	
 
-	gi.dprintf ("%i entities inhibited\n", inhibit);
+	//WF
+//	gi.dprintf ("%i entities inhibited\n", inhibit);
+	//WF
 
 #ifdef DEBUG
 	i = 1;
@@ -598,6 +655,10 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	G_FindTeams ();
 
 	PlayerTrail_Init ();
+
+//ZOID
+	CTFSetupTechSpawn();
+//ZOID
 }
 
 
@@ -626,6 +687,8 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 #endif
 
+//WF
+/*
 char *single_statusbar = 
 "yb	-24 "
 
@@ -762,7 +825,7 @@ char *dm_statusbar =
   "stat_string 16 "
 "endif "
 ;
-
+*/
 
 /*QUAKED worldspawn (0 0 0) ?
 
@@ -816,14 +879,37 @@ void SP_worldspawn (edict_t *ent)
 
 	gi.configstring (CS_MAXCLIENTS, va("%i", (int)(maxclients->value) ) );
 
+	//WF
+	/*
 	// status bar program
 	if (deathmatch->value)
 		gi.configstring (CS_STATUSBAR, dm_statusbar);
 	else
 		gi.configstring (CS_STATUSBAR, single_statusbar);
+	*/
+	//WF
+
+//ZOID
+		if (ctf->value) {
+//			gi.configstring (CS_STATUSBAR, ctf_statusbar);
+			//precaches
+			gi.imageindex("sbfctf1");
+			gi.imageindex("sbfctf2");
+			gi.imageindex("i_ctf1");
+			gi.imageindex("i_ctf2");
+			gi.imageindex("i_ctf1d");
+			gi.imageindex("i_ctf2d");
+			gi.imageindex("i_ctf1t");
+			gi.imageindex("i_ctf2t");
+			gi.imageindex("i_ctfj");
+		}
+//ZOID
 
 	//---------------
 
+	//WF
+	Lithium_InitLevel();
+	//WF
 
 	// help icon for statusbar
 	gi.imageindex ("i_help");

@@ -13,9 +13,9 @@ monster's dodge function should be called.
 static void check_dodge (edict_t *self, vec3_t start, vec3_t dir, int speed)
 {
 	vec3_t	end;
-	vec3_t	v;
+//	vec3_t	v;
 	trace_t	tr;
-	float	eta;
+//	float	eta;
 
 	// easy mode only ducks one quarter the time
 	if (skill->value == 0)
@@ -25,12 +25,15 @@ static void check_dodge (edict_t *self, vec3_t start, vec3_t dir, int speed)
 	}
 	VectorMA (start, 8192, dir, end);
 	tr = gi.trace (start, NULL, NULL, end, self, MASK_SHOT);
+	//WF
+	/*
 	if ((tr.ent) && (tr.ent->svflags & SVF_MONSTER) && (tr.ent->health > 0) && (tr.ent->monsterinfo.dodge) && infront(tr.ent, self))
 	{
 		VectorSubtract (tr.endpos, start, v);
 		eta = (VectorLength(v) - tr.ent->maxs[0]) / speed;
 		tr.ent->monsterinfo.dodge (tr.ent, self, eta);
-	}
+	}*/
+	//WF
 }
 
 
@@ -569,7 +572,10 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 
 	if (other->takedamage)
 	{
-		T_Damage (other, ent, ent->owner, ent->velocity, ent->s.origin, plane->normal, ent->dmg, 0, 0, MOD_ROCKET);
+		//WF
+//		T_Damage (other, ent, ent->owner, ent->velocity, ent->s.origin, plane->normal, ent->dmg, 0, 0, MOD_ROCKET);
+		T_Damage (other, ent, ent->owner, ent->velocity, ent->s.origin, plane->normal, ent->dmg, ent->dmg * rocket_knockback->value, 0, MOD_ROCKET);
+		//WF
 	}
 	else
 	{
@@ -761,8 +767,14 @@ void bfg_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf
 
 	// core explosion - prevents firing it into the wall/floor
 	if (other->takedamage)
+//WF
+	/*
 		T_Damage (other, self, self->owner, self->velocity, self->s.origin, plane->normal, 200, 0, 0, MOD_BFG_BLAST);
 	T_RadiusDamage(self, self->owner, 200, other, 100, MOD_BFG_BLAST);
+	*/
+		T_Damage (other, self, self->owner, self->velocity, self->s.origin, plane->normal, bfg_balldamage->value, 0, 0, MOD_BFG_BLAST);
+	T_RadiusDamage(self, self->owner, bfg_balldamage->value, other, bfg_ballradius->value, MOD_BFG_BLAST);
+//WF
 
 	gi.sound (self, CHAN_VOICE, gi.soundindex ("weapons/bfg__x1b.wav"), 1, ATTN_NORM, 0);
 	self->solid = SOLID_NOT;
@@ -795,10 +807,15 @@ void bfg_think (edict_t *self)
 	int		dmg;
 	trace_t	tr;
 
+	//WF
+	dmg = (int)bfg_raydamage->value;
+	/*
 	if (deathmatch->value)
 		dmg = 5;
 	else
 		dmg = 10;
+	*/
+	//WF
 
 	ent = NULL;
 	while ((ent = findradius(ent, self->s.origin, 256)) != NULL)
@@ -814,6 +831,14 @@ void bfg_think (edict_t *self)
 
 		if (!(ent->svflags & SVF_MONSTER) && (!ent->client) && (strcmp(ent->classname, "misc_explobox") != 0))
 			continue;
+
+//ZOID
+		//don't target players in CTF
+		if (ctf->value && ent->client &&
+			self->owner->client &&
+			ent->client->resp.ctf_team == self->owner->client->resp.ctf_team)
+			continue;
+//ZOID
 
 		VectorMA (ent->absmin, 0.5, ent->size, point);
 

@@ -19,6 +19,9 @@ cvar_t	*dmflags;
 cvar_t	*skill;
 cvar_t	*fraglimit;
 cvar_t	*timelimit;
+//ZOID
+cvar_t  *capturelimit;
+//ZOID
 cvar_t	*password;
 cvar_t	*spectator_password;
 cvar_t	*needpass;
@@ -76,10 +79,13 @@ void ShutdownGame (void)
 {
 	gi.dprintf ("==== ShutdownGame ====\n");
 
+	//WF
+	Lithium_Shutdown();
+	//WF
+
 	gi.FreeTags (TAG_LEVEL);
 	gi.FreeTags (TAG_GAME);
 }
-
 
 /*
 =================
@@ -203,6 +209,11 @@ void EndDMLevel (void)
 	char *s, *t, *f;
 	static const char *seps = " ,\n\r";
 
+	//WF
+	if(Lithium_EndDMLevel())
+		return;
+	//WF
+
 	// stay on same level flag
 	if ((int)dmflags->value & DF_SAME_LEVEL)
 	{
@@ -293,6 +304,13 @@ void CheckDMRules (void)
 	if (!deathmatch->value)
 		return;
 
+	//WF
+	if(end_time && level.time > end_time) {
+		EndDMLevel();
+		return;
+	}
+	//WF
+
 	if (timelimit->value)
 	{
 		if (level.time >= timelimit->value*60)
@@ -305,6 +323,14 @@ void CheckDMRules (void)
 
 	if (fraglimit->value)
 	{
+//ZOID
+		if (ctf->value) {
+			if (CTFCheckRules()) {
+				EndDMLevel ();
+			}
+		}
+//ZOID
+
 		for (i=0 ; i<maxclients->value ; i++)
 		{
 			cl = game.clients + i;
@@ -333,6 +359,10 @@ void ExitLevel (void)
 	edict_t	*ent;
 	char	command [256];
 
+	//WF
+	Lithium_ExitLevel();
+	//WF
+
 	Com_sprintf (command, sizeof(command), "gamemap \"%s\"\n", level.changemap);
 	gi.AddCommandString (command);
 	level.changemap = NULL;
@@ -350,6 +380,9 @@ void ExitLevel (void)
 			ent->health = ent->client->pers.max_health;
 	}
 
+//ZOID
+	CTFInit();
+//ZOID
 }
 
 /*
@@ -368,7 +401,15 @@ void G_RunFrame (void)
 	level.time = level.framenum*FRAMETIME;
 
 	// choose a client for monsters to target this frame
+	//WF
+	/*
 	AI_SetSightClient ();
+	*/
+	//WF
+
+	//WF
+	Lithium_RunFrame();
+	//WF
 
 	// exit intermissions
 
@@ -396,10 +437,14 @@ void G_RunFrame (void)
 		if ((ent->groundentity) && (ent->groundentity->linkcount != ent->groundentity_linkcount))
 		{
 			ent->groundentity = NULL;
+			//WF
+			/*
 			if ( !(ent->flags & (FL_SWIM|FL_FLY)) && (ent->svflags & SVF_MONSTER) )
 			{
 				M_CheckGround (ent);
 			}
+			*/
+			//WF
 		}
 
 		if (i > 0 && i <= maxclients->value)
@@ -410,6 +455,10 @@ void G_RunFrame (void)
 
 		G_RunEntity (ent);
 	}
+
+	//WF
+	Lithium_CalcPlaces();
+	//WF
 
 	// see if it is time to end a deathmatch
 	CheckDMRules ();

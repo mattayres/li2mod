@@ -198,6 +198,9 @@ typedef struct
 #define IT_STAY_COOP	8
 #define IT_KEY			16
 #define IT_POWERUP		32
+//ZOID
+#define IT_TECH			64
+//ZOID
 
 // gitem_t->weapmodel for weapons indicates model index
 #define WEAP_BLASTER			1 
@@ -479,6 +482,9 @@ extern	int	body_armor_index;
 #define MOD_TRIGGER_HURT	31
 #define MOD_HIT				32
 #define MOD_TARGET_BLASTER	33
+//ZOID
+#define MOD_GRAPPLE			34
+//ZOID
 #define MOD_FRIENDLY_FIRE	0x8000000
 
 extern	int	meansOfDeath;
@@ -501,6 +507,9 @@ extern	cvar_t	*dmflags;
 extern	cvar_t	*skill;
 extern	cvar_t	*fraglimit;
 extern	cvar_t	*timelimit;
+//ZOID
+extern  cvar_t  *capturelimit;
+//ZOID
 extern	cvar_t	*password;
 extern	cvar_t	*spectator_password;
 extern	cvar_t	*needpass;
@@ -531,6 +540,10 @@ extern	cvar_t	*flood_persecond;
 extern	cvar_t	*flood_waitdelay;
 
 extern	cvar_t	*sv_maplist;
+
+//ZOID
+extern	qboolean	is_quad;
+//ZOID
 
 #define world	(&g_edicts[0])
 
@@ -849,9 +862,26 @@ typedef struct
 // client data that stays across deathmatch respawns
 typedef struct
 {
+//WF zbot detection
+	short angles[2][2];
+	int tog;
+	int jitter;
+	float jitter_time;
+	float jitter_last;
+//WF zbot detection
+
 	client_persistant_t	coop_respawn;	// what to set client->pers to on a respawn
 	int			enterframe;			// level.framenum the client entered the game
 	int			score;				// frags, etc
+//ZOID
+	int			ctf_team;			// CTF team
+	int			ctf_state;
+	float		ctf_lasthurtcarrier;
+	float		ctf_lastreturnedflag;
+	float		ctf_flagsince;
+	float		ctf_lastfraggedcarrier;
+	qboolean	id_state;
+//ZOID
 	vec3_t		cmd_angles;			// angles sent over in the last command
 
 	qboolean	spectator;			// client is a spectator
@@ -871,6 +901,10 @@ struct gclient_s
 	pmove_state_t		old_pmove;	// for detecting out-of-pmove changes
 
 	qboolean	showscores;			// set layout stat
+//ZOID
+	qboolean	inmenu;				// in menu
+//WF	pmenuhnd_t	*menu;				// current menu
+//ZOID
 	qboolean	showinventory;		// set layout stat
 	qboolean	showhelp;
 	qboolean	showhelpicon;
@@ -939,10 +973,50 @@ struct gclient_s
 
 	float		respawn_time;		// can respawn when time > this
 
+//ZOID
+	void		*ctf_grapple;		// entity of grapple
+	int			ctf_grapplestate;		// true if pulling
+	float		ctf_grapplereleasetime;	// time of grapple release
+	float		ctf_regentime;		// regen tech
+	float		ctf_techsndtime;
+	float		ctf_lasttechmsg;
+//ZOID
+
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?
+
+//WF
+	edict_t *last_rune;
+	float last_rune_time;
+	edict_t *drop_rune;
+	float drop_rune_time;
+	float regen_time;
+	float regen_health;
+
+	float decamp_time;
+	int decamp_num;
+	int decamp_move[60];
+	vec3_t decamp_vec;
+	int decamp_count;
+	int decamp_fire;
+
+	qboolean disconnecting;
+
+	qboolean has_pack;
+
+	// Orange 2 Hook
+	qboolean    hook_out;
+	qboolean    hook_on;
+	edict_t     *hook;
+	float		last_hook_time;
+	int			hook_damage;
+//WF
 };
 
+//WF
+typedef struct pvar_s pvar_t;
+typedef struct lclient_s lclient_t;
+//WF
 
 struct edict_s
 {
@@ -1091,5 +1165,62 @@ struct edict_s
 	// common data blocks
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
+
+//WF
+	int lithium_flags;
+	int rune;
+	float motd_time;
+	float motd_start;
+	float news_time;
+	int fph;
+	int fph_place;
+	int place;
+	int trak_num;
+	int ping_total;
+	int ping_count;
+	char *centerprint;
+	float centerprint_time;
+	char *centerprint2;
+	int play_frames;
+	int board;
+	int sel;
+	float safety_time;
+	int safety_warns;
+	int suicides;
+	int team_num;
+	float verify_time;
+	int verify_count;
+	int verified;
+	qboolean bestweap;
+	int hud;
+	int layout;
+	qboolean layout_update;
+	struct menu_s *menu;
+	int update_size;
+	int update_other;
+	int update_frame;
+	qboolean id_state;
+	edict_t *id_ent;
+	pvar_t *pvar;
+	int admin;
+	int admin_code;
+	int max_armor;
+	float last_sound_time;
+	int mega_rot;
+	float ctf_players_time;
+
+	// Orange 2 Hook
+	edict_t *laser;
+	float hook_time;
+
+	lclient_t *lclient;
+//WF
 };
 
+//ZOID
+#include "g_ctf.h"
+//ZOID
+
+//WF
+#include "lithium.h"
+//WF

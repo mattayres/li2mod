@@ -1,0 +1,241 @@
+/*====================================================
+
+  Lithium II Mod for Quake II.
+  Copyright (c) 1997-1998 Matt Ayres.
+  All rights reserved.
+
+  Distribution of this source file, by any means, is
+  hereby forbidden.  You may not use this source file
+  without permission.  Do not remove this notice.
+
+  Code by Matt "WhiteFang" Ayres, matt@lithium.com
+  Of Lithium Software, http://www.lithium.com
+
+  Quake II is a trademark of Id Software, Inc.
+
+====================================================*/
+
+#include "g_local.h"
+#ifdef WIN32
+#include "direct.h"
+#endif
+
+#define WRITE_HIGHSCORES 10
+#define MAX_HIGHSCORES 20
+
+place_t *first_place;
+
+char *Highscores_File(void) {
+	static char buf[64];
+	sprintf(buf, "%s/hiscores/%s.%02dm", gi.cvar("gamedir", 0, 0)->string,
+		level.mapname, (int)timelimit->value);
+	return buf;
+}
+
+void Highscores_Read(void) {
+	int p = 0;
+	char *c, buf[64];
+	FILE *file = fopen(Highscores_File(), "rt");
+
+	place_t *place = NULL, *prev = NULL;
+
+	if(file) {
+		while(fgets(buf, 64, file)) {
+			c = strchr(buf, ';');
+			if(c) {
+				place = (place_t *)gi.TagMalloc(sizeof(place_t), TAG_LEVEL);
+				if(p == 0)
+					first_place = place;
+	
+				*c = 0;
+				sscanf(buf, "%d", &place->score);
+				strcpy(buf, c + 1);
+				c = strchr(buf, ';');
+				if(c) {
+					*c = 0;
+					strcpy(place->name, buf);
+					strcpy(place->date, c + 1);
+					c = strchr(place->date, '\r');
+					if(c)
+						*c = 0;
+					c = strchr(place->date, '\n');
+					if(c)
+						*c = 0;
+				}
+			}
+
+			place->prev = prev;
+			if(prev)
+				prev->next = place;
+			prev = place;
+
+			p++;
+			if(p == WRITE_HIGHSCORES)
+				break;
+		}
+		fclose(file);
+	}
+
+	if(place)
+		place->next = NULL;
+}
+
+void Highscores_Update(void) {
+	int i;
+	edict_t *ent;
+	FILE *file;
+	char buf[64];
+	place_t *place, *new_place = NULL;
+	
+	time_t t;
+	struct tm *tm;
+	time(&t);
+	tm = localtime(&t);
+
+	Highscores_Read();
+
+	for(i = 0; i < game.maxclients; i++) {
+		ent = g_edicts + 1 + i;
+		if(!ent->inuse)
+			continue;
+
+		if(ent->client->resp.score <= 0)
+			continue;
+
+		place = first_place;
+		while(place) {
+			if(ent->client->resp.score > place->score) {
+				new_place = (place_t *)gi.TagMalloc(sizeof(place_t), TAG_LEVEL);
+
+				new_place->score = ent->client->resp.score;
+				strcpy(new_place->name, ent->client->pers.netname);
+				sprintf(new_place->date, "%02d/%02d/%02d", tm->tm_mon + 1, tm->tm_mday, tm->tm_year);
+
+				new_place->next = place;
+				new_place->prev = place->prev;
+				if(place->prev)
+					place->prev->next = new_place;
+				place->prev = new_place;
+
+				if(place == first_place)
+					first_place = new_place;
+
+				break;
+			}
+
+			if(!place->next)
+				break;
+
+			place = place->next;
+		}
+
+		if(!new_place) {
+			new_place = (place_t *)gi.TagMalloc(sizeof(place_t), TAG_LEVEL);
+			new_place->prev = place;
+			new_place->next = NULL;
+
+			new_place->score = ent->client->resp.score;
+			strcpy(new_place->name, ent->client->pers.netname);
+			sprintf(new_place->date, "%02d/%02d/%02d", tm->tm_mon + 1, tm->tm_mday, tm->tm_year);
+
+			if(!place)
+				first_place = new_place;
+			else
+				place->next = new_place;
+		}
+
+		place = first_place;
+		while(place) {
+			if(place != new_place && !strcmp(new_place->name, place->name)) {
+				if(place->prev)
+					place->prev->next = place->next;
+				if(place->next)
+					place->next->prev = place->prev;
+			}
+
+			place = place->next;
+		}
+	}
+
+	place = first_place;
+	if(!place)
+		return;
+
+#ifdef WIN32
+	_mkdir(file_gamedir("hiscores"));
+#else
+	mkdir(file_gamedir("hiscores"));
+#endif
+	file = fopen(Highscores_File(), "wt");
+	if(!file)
+		return;
+
+	i = 0;
+	while(place && i < 10) {
+		sprintf(buf, "%d;%s;%s\r\n", place->score, place->name, place->date);
+		fputs(buf, file);
+
+		place = place->next;
+
+		i++;
+	}
+
+	fclose(file);
+}
+
+void Highscores_List(edict_t *ent) {
+	int i = 0;
+	place_t *place = first_place;
+
+	if(!use_highscores->value) {
+		gi.cprintf(ent, PRINT_HIGH, "This server isn't using the high scores feature.\n");
+		return;
+	}
+
+	gi.cprintf(ent, PRINT_HIGH, "High scores for %s (in %d min)\n", level.mapname, (int)timelimit->value);
+
+	while(place) {
+		gi.cprintf(ent, PRINT_HIGH, " %2d %-16s %3d on %s\n", i++ + 1, place->name, place->score, place->date);
+		place = place->next;
+	}
+}
+
+void Highscores_Scoreboard(char *string, int *down) {
+	place_t *place = first_place;
+	int sec = (int)(timelimit->value * 60 + empty_time - level.time);
+
+	*down -= 12;
+
+	if(!level.intermissiontime) {
+		*down -= 4;
+		strcat(string, va("yv %d xv 0 cstring \"Time left is %d:%02d\" ", *down, sec / 60, sec % 60));
+		*down += 8;
+	}
+
+	if(place && place->score > 0) {
+		strcat(string, va("yv %d xv 0 cstring \"High score is %d (in %d min)\" ", *down, place->score, (int)timelimit->value));
+		strcat(string, va("yv %d xv 0 cstring \"by %s on %s\" ", *down + 8, place->name, place->date));
+	}
+	else
+		strcat(string, va("yv %d xv 0 cstring \"No high score for this map\" ", *down));
+
+	*down += 24;
+}
+
+int Highscores_FullScoreboard(edict_t *ent) {
+	char string[1024] = "";
+	int i = 0;
+
+	place_t *place = first_place;
+
+	strcat(string, va("xv 0 yv 40 cstring \"High scores for %s (in %d min)\" ", level.mapname, (int)timelimit->value));
+	while(place) {
+		strcat(string, va("xv -4 yv %d cstring \"%2d %-16s %3d on %s\" ", 56 + i * 8, i++ + 1, place->name, place->score, place->date));
+		place = place->next;
+	}
+
+	gi.WriteByte(svc_layout);
+	gi.WriteString(string);
+
+	return strlen(string);
+}

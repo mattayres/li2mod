@@ -107,13 +107,23 @@ void DoRespawn (edict_t *ent)
 
 		master = ent->teammaster;
 
-		for (count = 0, ent = master; ent; ent = ent->chain, count++)
-			;
+//ZOID
+//in ctf, when we are weapons stay, only the master of a team of weapons
+//is spawned
+		if (ctf->value &&
+			((int)dmflags->value & DF_WEAPONS_STAY) &&
+			master->item && (master->item->flags & IT_WEAPON))
+			ent = master;
+		else {
+//ZOID
+			for (count = 0, ent = master; ent; ent = ent->chain, count++)
+				;
 
-		choice = rand() % count;
+			choice = rand() % count;
 
-		for (count = 0, ent = master; count < choice; ent = ent->chain, count++)
-			;
+			for (count = 0, ent = master; count < choice; ent = ent->chain, count++)
+				;
+		}
 	}
 
 	ent->svflags &= ~SVF_NOCLIENT;
@@ -122,10 +132,20 @@ void DoRespawn (edict_t *ent)
 
 	// send an effect
 	ent->s.event = EV_ITEM_RESPAWN;
+
+	//WF
+//	Rune_MaybeSpawn(ent->s.origin);
+	Pack_MaybeSpawn(ent->s.origin);
+	//WF
+
 }
 
 void SetRespawn (edict_t *ent, float delay)
 {
+	//WF
+	delay = FasterRespawn(ent, delay);
+	//WF
+
 	ent->flags |= FL_RESPAWN;
 	ent->svflags |= SVF_NOCLIENT;
 	ent->solid = SOLID_NOT;
@@ -242,6 +262,9 @@ qboolean Pickup_Pack (edict_t *ent, edict_t *other)
 	gitem_t	*item;
 	int		index;
 
+	//WF
+if(!use_packs->value) {
+	//WF
 	if (other->client->pers.max_bullets < 300)
 		other->client->pers.max_bullets = 300;
 	if (other->client->pers.max_shells < 200)
@@ -254,6 +277,7 @@ qboolean Pickup_Pack (edict_t *ent, edict_t *other)
 		other->client->pers.max_cells = 300;
 	if (other->client->pers.max_slugs < 100)
 		other->client->pers.max_slugs = 100;
+}
 
 	item = FindItem("Bullets");
 	if (item)
@@ -519,14 +543,33 @@ void Drop_Ammo (edict_t *ent, gitem_t *item)
 
 //======================================================================
 
+//WF
+extern lvar_t *rune_regenmax;
+//WF
+
 void MegaHealth_think (edict_t *self)
 {
+	//WF
+	/*
 	if (self->owner->health > self->owner->max_health)
 	{
 		self->nextthink = level.time + 1;
 		self->owner->health -= 1;
 		return;
 	}
+	*/
+
+	if(self->owner->health > self->owner->max_health && self->owner->mega_rot > 0) {
+		self->nextthink = level.time + 1;
+		if(!(CTFWhat_Tech(self->owner) == FindItem("AutoDoc") && self->owner->health < 151) &&
+			!(Rune_HasRegen(self->owner) && self->owner->health < rune_regenmax->value + 1))
+			self->owner->health--;
+		self->owner->mega_rot--;
+		return;
+	}
+	else
+		self->owner->mega_rot = 0;
+	//WF
 
 	if (!(self->spawnflags & DROPPED_ITEM) && (deathmatch->value))
 		SetRespawn (self, 20);
@@ -536,11 +579,21 @@ void MegaHealth_think (edict_t *self)
 
 qboolean Pickup_Health (edict_t *ent, edict_t *other)
 {
+	//WF
+	int add_health;
+	//WF
+
 	if (!(ent->style & HEALTH_IGNORE_MAX))
 		if (other->health >= other->max_health)
 			return false;
 
-	other->health += ent->count;
+	//WF
+//	other->health += ent->count;
+	add_health = ent->count;
+	if(add_health == 2)
+		add_health = small_health->value;
+	other->health += add_health;
+	//WF
 
 	if (!(ent->style & HEALTH_IGNORE_MAX))
 	{
@@ -556,6 +609,10 @@ qboolean Pickup_Health (edict_t *ent, edict_t *other)
 		ent->flags |= FL_RESPAWN;
 		ent->svflags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
+
+		//WF
+		other->mega_rot += add_health;
+		//WF
 	}
 	else
 	{
@@ -603,9 +660,20 @@ qboolean Pickup_Armor (edict_t *ent, edict_t *other)
 	if (ent->item->tag == ARMOR_SHARD)
 	{
 		if (!old_armor_index)
-			other->client->pers.inventory[jacket_armor_index] = 2;
+			//WF
+//			other->client->pers.inventory[jacket_armor_index] = 2;
+			other->client->pers.inventory[jacket_armor_index] = shard_armor->value;
+			//WF
 		else
-			other->client->pers.inventory[old_armor_index] += 2;
+			//WF
+//			other->client->pers.inventory[old_armor_index] += 2;
+			other->client->pers.inventory[old_armor_index] += shard_armor->value;
+			//WF
+
+		//WF
+		if(other->client->pers.inventory[old_armor_index] > MAX(other->max_armor, max_armor->value))
+			other->client->pers.inventory[old_armor_index] = MAX(other->max_armor, max_armor->value);
+		//WF
 	}
 
 	// if player has no armor, just use it
@@ -749,6 +817,11 @@ void Touch_Item (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 		return;		// dead people can't pickup
 	if (!ent->item->pickup)
 		return;		// not a grabbable item?
+
+	//WF
+	if(Lithium_IsObserver(ent))
+		return;
+	//WF
 
 	taken = ent->item->pickup(ent, other);
 
@@ -1043,6 +1116,11 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 {
 	PrecacheItem (item);
 
+	//WF
+//	Rune_MaybeSpawn(ent->s.origin);
+	Pack_MaybeSpawn(ent->s.origin);
+	//WF
+
 	if (ent->spawnflags)
 	{
 		if (strcmp(ent->classname, "key_power_cube") != 0)
@@ -1101,6 +1179,16 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 		item->drop = NULL;
 	}
 
+//ZOID
+//Don't spawn the flags unless enabled
+	if (!ctf->value &&
+		(strcmp(ent->classname, "item_flag_team1") == 0 ||
+		strcmp(ent->classname, "item_flag_team2") == 0)) {
+		G_FreeEdict(ent);
+		return;
+	}
+//ZOID
+
 	ent->item = item;
 	ent->nextthink = level.time + 2 * FRAMETIME;    // items start after other solids
 	ent->think = droptofloor;
@@ -1108,6 +1196,14 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 	ent->s.renderfx = RF_GLOW;
 	if (ent->model)
 		gi.modelindex (ent->model);
+
+//ZOID
+//flags are server animated and have special handling
+	if (strcmp(ent->classname, "item_flag_team1") == 0 ||
+		strcmp(ent->classname, "item_flag_team2") == 0) {
+		ent->think = CTFFlagSetup;
+	}
+//ZOID
 }
 
 //======================================================================
@@ -1265,6 +1361,32 @@ gitem_t	itemlist[] =
 	//
 	// WEAPONS 
 	//
+
+//ZOID
+/* weapon_grapple (.3 .3 1) (-16 -16 -16) (16 16 16)
+always owned, never in the world
+*/
+	{
+		"weapon_grapple", 
+		NULL,
+		Use_Weapon,
+		NULL,
+		CTFWeapon_Grapple,
+		"misc/w_pkup.wav",
+		NULL, 0,
+		"models/weapons/grapple/tris.md2",
+/* icon */		"w_grapple",
+/* pickup */	"Grapple",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		0,
+		NULL,
+		0,
+/* precache */ "weapons/grapple/grfire.wav weapons/grapple/grpull.wav weapons/grapple/grhang.wav weapons/grapple/grreset.wav weapons/grapple/grhit.wav"
+	},
+//ZOID
 
 /* weapon_blaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 always owned, never in the world
@@ -2091,6 +2213,144 @@ tank commander's head
 		0,
 /* precache */ "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"
 	},
+
+//ZOID
+/*QUAKED item_flag_team1 (1 0.2 0) (-16 -16 -24) (16 16 32)
+*/
+	{
+		"item_flag_team1",
+		CTFPickup_Flag,
+		NULL,
+		CTFDrop_Flag, //Should this be null if we don't want players to drop it manually?
+		NULL,
+		"ctf/flagtk.wav",
+		"players/male/flag1.md2", EF_FLAG1,
+		NULL,
+/* icon */		"i_ctf1",
+/* pickup */	"Red Flag",
+/* width */		2,
+		0,
+		NULL,
+		0,
+		0,
+		NULL,
+		0,
+/* precache */ "ctf/flagcap.wav"
+	},
+
+/*QUAKED item_flag_team2 (1 0.2 0) (-16 -16 -24) (16 16 32)
+*/
+	{
+		"item_flag_team2",
+		CTFPickup_Flag,
+		NULL,
+		CTFDrop_Flag, //Should this be null if we don't want players to drop it manually?
+		NULL,
+		"ctf/flagtk.wav",
+		"players/male/flag2.md2", EF_FLAG2,
+		NULL,
+/* icon */		"i_ctf2",
+/* pickup */	"Blue Flag",
+/* width */		2,
+		0,
+		NULL,
+		0,
+		0,
+		NULL,
+		0,
+/* precache */ "ctf/flagcap.wav"
+	},
+
+/* Resistance Tech */
+	{
+		"item_tech1",
+		CTFPickup_Tech,
+		NULL,
+		CTFDrop_Tech, //Should this be null if we don't want players to drop it manually?
+		NULL,
+		"items/pkup.wav",
+		"models/ctf/resistance/tris.md2", EF_ROTATE,
+		NULL,
+/* icon */		"tech1",
+/* pickup */	"Disruptor Shield",
+/* width */		2,
+		0,
+		NULL,
+		IT_TECH,
+		0,
+		NULL,
+		0,
+/* precache */ "ctf/tech1.wav"
+	},
+
+/* Strength Tech */
+	{
+		"item_tech2",
+		CTFPickup_Tech,
+		NULL,
+		CTFDrop_Tech, //Should this be null if we don't want players to drop it manually?
+		NULL,
+		"items/pkup.wav",
+		"models/ctf/strength/tris.md2", EF_ROTATE,
+		NULL,
+/* icon */		"tech2",
+/* pickup */	"Power Amplifier",
+/* width */		2,
+		0,
+		NULL,
+		IT_TECH,
+		0,
+		NULL,
+		0,
+/* precache */ "ctf/tech2.wav ctf/tech2x.wav"
+	},
+
+/* Haste Tech */
+	{
+		"item_tech3",
+		CTFPickup_Tech,
+		NULL,
+		CTFDrop_Tech, //Should this be null if we don't want players to drop it manually?
+		NULL,
+		"items/pkup.wav",
+		"models/ctf/haste/tris.md2", EF_ROTATE,
+		NULL,
+/* icon */		"tech3",
+/* pickup */	"Time Accel",
+/* width */		2,
+		0,
+		NULL,
+		IT_TECH,
+		0,
+		NULL,
+		0,
+/* precache */ "ctf/tech3.wav"
+	},
+
+/* Regeneration Tech */
+	{
+		"item_tech4",
+		CTFPickup_Tech,
+		NULL,
+		CTFDrop_Tech, //Should this be null if we don't want players to drop it manually?
+		NULL,
+		"items/pkup.wav",
+		"models/ctf/regeneration/tris.md2", EF_ROTATE,
+		NULL,
+/* icon */		"tech4",
+/* pickup */	"AutoDoc",
+/* width */		2,
+		0,
+		NULL,
+		IT_TECH,
+		0,
+		NULL,
+		0,
+/* precache */ "ctf/tech4.wav"
+	},
+
+//ZOID
+
 
 	// end of list marker
 	{NULL}

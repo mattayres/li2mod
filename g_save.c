@@ -149,10 +149,19 @@ void InitGame (void)
 
 	// latched vars
 	sv_cheats = gi.cvar ("cheats", "0", CVAR_SERVERINFO|CVAR_LATCH);
-	gi.cvar ("gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_LATCH);
-	gi.cvar ("gamedate", __DATE__ , CVAR_SERVERINFO | CVAR_LATCH);
 
-	maxclients = gi.cvar ("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
+	//WF
+//	gi.cvar ("gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_LATCH);
+//	gi.cvar ("gamedate", __DATE__ , CVAR_SERVERINFO | CVAR_LATCH);
+
+	gi.cvar("gamedate", "", CVAR_SERVERINFO | CVAR_LATCH);
+	gi.cvar_set("gamedate", __DATE__);
+	//WF
+
+	//WF (4->16)
+	maxclients = gi.cvar ("maxclients", "16", CVAR_SERVERINFO | CVAR_LATCH);
+	//WF
+
 	maxspectators = gi.cvar ("maxspectators", "4", CVAR_SERVERINFO);
 	deathmatch = gi.cvar ("deathmatch", "0", CVAR_LATCH);
 	coop = gi.cvar ("coop", "0", CVAR_LATCH);
@@ -162,6 +171,9 @@ void InitGame (void)
 	// change anytime vars
 	dmflags = gi.cvar ("dmflags", "0", CVAR_SERVERINFO);
 	fraglimit = gi.cvar ("fraglimit", "0", CVAR_SERVERINFO);
+//ZOID
+	capturelimit = gi.cvar ("capturelimit", "0", CVAR_SERVERINFO);
+//ZOID
 	timelimit = gi.cvar ("timelimit", "0", CVAR_SERVERINFO);
 	password = gi.cvar ("password", "", CVAR_USERINFO);
 	spectator_password = gi.cvar ("spectator_password", "", CVAR_USERINFO);
@@ -175,6 +187,27 @@ void InitGame (void)
 	bob_up  = gi.cvar ("bob_up", "0.005", 0);
 	bob_pitch = gi.cvar ("bob_pitch", "0.002", 0);
 	bob_roll = gi.cvar ("bob_roll", "0.002", 0);
+
+	//WF
+	Lithium_InitGame();
+	gi.cvar("gamename", "", CVAR_SERVERINFO | CVAR_LATCH);
+	{
+		char buf[64];
+		sprintf(buf, "Lithium II v%s", lithium_version);
+	gi.cvar_set("gamename", buf);
+	}
+	//WF
+
+//ZOID
+//This game.dll only supports deathmatch
+	if (!deathmatch->value) {
+		gi.dprintf("Forcing deathmatch.");
+		gi.cvar_set("deathmatch", "1");
+	}
+	//force coop off
+	if (coop->value)
+		gi.cvar_set("coop", "0");
+//ZOID
 
 	// flood control
 	flood_msgs = gi.cvar ("flood_msgs", "4", 0);
@@ -201,7 +234,19 @@ void InitGame (void)
 	game.maxclients = maxclients->value;
 	game.clients = gi.TagMalloc (game.maxclients * sizeof(game.clients[0]), TAG_GAME);
 	globals.num_edicts = game.maxclients+1;
+
+//ZOID
+	CTFInit();
+//ZOID
 }
+
+//WF
+void ReadLevel(char *filename) { }
+void WriteLevel(char *filename) { }
+void ReadGame(char *filename) { }
+void WriteGame(char *filename, qboolean autosave) { }
+#if 0
+//WF
 
 //=========================================================
 
@@ -749,3 +794,7 @@ void ReadLevel (char *filename)
 				ent->nextthink = level.time + ent->delay;
 	}
 }
+
+//WF
+#endif
+//WF

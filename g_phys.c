@@ -327,6 +327,10 @@ trace_t SV_PushEntity (edict_t *ent, vec3_t push)
 	vec3_t	end;
 	int		mask;
 
+	//WF
+	int		retry_count = 0;
+	//WF
+
 	VectorCopy (ent->s.origin, start);
 	VectorAdd (start, push, end);
 
@@ -351,6 +355,9 @@ retry:
 			// move the pusher back and try again
 			VectorCopy (start, ent->s.origin);
 			gi.linkentity (ent);
+			//WF
+			if(retry_count++ < 50)
+			//WF
 			goto retry;
 		}
 	}
@@ -804,8 +811,12 @@ void SV_Physics_Step (edict_t *ent)
 	int			mask;
 
 	// airborn monsters should always check for ground
+	//WF
+	/*
 	if (!ent->groundentity)
 		M_CheckGround (ent);
+	*/
+	//WF
 
 	groundentity = ent->groundentity;
 

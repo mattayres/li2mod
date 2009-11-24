@@ -2,6 +2,24 @@
 
 #include "g_local.h"
 
+// from g_ai.c
+qboolean visible (edict_t *self, edict_t *other)
+{
+	vec3_t	spot1;
+	vec3_t	spot2;
+	trace_t	trace;
+
+	VectorCopy (self->s.origin, spot1);
+	spot1[2] += self->viewheight;
+	VectorCopy (other->s.origin, spot2);
+	spot2[2] += other->viewheight;
+	trace = gi.trace (spot1, vec3_origin, vec3_origin, spot2, self, MASK_OPAQUE);
+	
+	if (trace.fraction == 1.0)
+		return true;
+	return false;
+}
+
 /*
 ============
 CanDamage
@@ -97,11 +115,15 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 		return;
 	}
 
+	//WF
+	/*
 	if ((targ->svflags & SVF_MONSTER) && (targ->deadflag != DEAD_DEAD))
 	{
 		targ->touch = NULL;
 		monster_death_use (targ);
 	}
+	*/
+	//WF
 
 	targ->die (targ, inflictor, attacker, damage, point);
 }
@@ -155,7 +177,10 @@ static int CheckPowerArmor (edict_t *ent, vec3_t point, vec3_t normal, int damag
 	int			save;
 	int			power_armor_type;
 	int			index;
-	int			damagePerCell;
+	//WF
+//	int			damagePerCell;
+	float		damagePerCell;
+	//WF
 	int			pa_te_type;
 	int			power;
 	int			power_used;
@@ -204,13 +229,19 @@ static int CheckPowerArmor (edict_t *ent, vec3_t point, vec3_t normal, int damag
 		if (dot <= 0.3)
 			return 0;
 
-		damagePerCell = 1;
+		//WF
+//		damagePerCell = 1;
+		damagePerCell = power_armor_screen->value;
+		//WF
 		pa_te_type = TE_SCREEN_SPARKS;
 		damage = damage / 3;
 	}
 	else
 	{
-		damagePerCell = 2;
+		//WF
+//		damagePerCell = 2;
+		damagePerCell = power_armor_shield->value;
+		//WF
 		pa_te_type = TE_SHIELD_SPARKS;
 		damage = (2 * damage) / 3;
 	}
@@ -275,6 +306,9 @@ static int CheckArmor (edict_t *ent, vec3_t point, vec3_t normal, int damage, in
 
 void M_ReactToDamage (edict_t *targ, edict_t *attacker)
 {
+	//WF
+	return;
+	/*
 	if (!(attacker->client) && !(attacker->svflags & SVF_MONSTER))
 		return;
 
@@ -346,10 +380,19 @@ void M_ReactToDamage (edict_t *targ, edict_t *attacker)
 		if (!(targ->monsterinfo.aiflags & AI_DUCKED))
 			FoundTarget (targ);
 	}
+	*/
+	//WF
 }
 
 qboolean CheckTeamDamage (edict_t *targ, edict_t *attacker)
 {
+//ZOID
+	if (ctf->value && targ->client && attacker->client)
+		if (targ->client->resp.ctf_team == attacker->client->resp.ctf_team &&
+			targ != attacker)
+			return true;
+//ZOID
+
 		//FIXME make the next line real and uncomment this block
 		// if ((ability to damage a teammate == OFF) && (targ's team == attacker's team))
 	return false;
@@ -364,8 +407,16 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	int			psave;
 	int			te_sparks;
 
+	//WF
+	float		adjusted_knockback;
+	//WF
+
 	if (!targ->takedamage)
 		return;
+
+	//WF
+	damage = Rune_AdjustDamage(targ, attacker, damage);
+	//WF
 
 	// friendly fire avoidance
 	// if enabled you can't hurt teammates (but you can hurt yourself)
@@ -403,8 +454,17 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	if (!(dflags & DAMAGE_RADIUS) && (targ->svflags & SVF_MONSTER) && (attacker->client) && (!targ->enemy) && (targ->health > 0))
 		damage *= 2;
 
+//ZOID
+//strength tech
+	damage = CTFApplyStrength(attacker, damage);
+//ZOID
+
 	if (targ->flags & FL_NO_KNOCKBACK)
 		knockback = 0;
+
+	//WF
+	adjusted_knockback = (float)knockback * knockback_adjust->value;
+	//WF
 
 // figure momentum add
 	if (!(dflags & DAMAGE_NO_KNOCKBACK))
@@ -420,13 +480,25 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 				mass = targ->mass;
 
 			if (targ->client  && attacker == targ)
+			//WF
+				VectorScale (dir, 500.0 * adjusted_knockback * knockback_self->value / mass, kvel);	// the rocket jump hack...
+			else
+				VectorScale (dir, 500.0 * adjusted_knockback / mass, kvel);
+			/*
 				VectorScale (dir, 1600.0 * (float)knockback / mass, kvel);	// the rocket jump hack...
 			else
 				VectorScale (dir, 500.0 * (float)knockback / mass, kvel);
+			*/
+			//WF
 
 			VectorAdd (targ->velocity, kvel, targ->velocity);
 		}
 	}
+
+	//WF
+	if(targ->safety_time && !(dflags & DAMAGE_NO_PROTECTION))
+		return;
+	//WF
 
 	take = damage;
 	save = 0;
@@ -451,18 +523,38 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 		save = damage;
 	}
 
-	psave = CheckPowerArmor (targ, point, normal, take, dflags);
-	take -= psave;
+//ZOID
+//team armor protect
+	if (ctf->value && targ->client && attacker->client &&
+		targ->client->resp.ctf_team == attacker->client->resp.ctf_team &&
+		targ != attacker && ((int)dmflags->value & DF_ARMOR_PROTECT)) {
+		psave = asave = 0;
+	} else {
+//ZOID
+		psave = CheckPowerArmor (targ, point, normal, take, dflags);
+		take -= psave;
 
-	asave = CheckArmor (targ, point, normal, take, te_sparks, dflags);
-	take -= asave;
+		asave = CheckArmor (targ, point, normal, take, te_sparks, dflags);
+		take -= asave;
+//ZOID
+	}
+//ZOID
 
 	//treat cheat/powerup savings the same as armor
 	asave += save;
 
+//ZOID
+//resistance tech
+	take = CTFApplyResistance(targ, take);
+//ZOID
+
 	// team damage avoidance
 	if (!(dflags & DAMAGE_NO_PROTECTION) && CheckTeamDamage (targ, attacker))
 		return;
+
+//ZOID
+	CTFCheckHurtCarrier(targ, attacker);
+//ZOID
 
 // do the damage
 	if (take)
@@ -474,7 +566,11 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 
 		targ->health = targ->health - take;
-			
+
+		//WF
+		Rune_TDamage(targ, attacker, take);
+		//WF
+
 		if (targ->health <= 0)
 		{
 			if ((targ->svflags & SVF_MONSTER) || (client))

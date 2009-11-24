@@ -252,8 +252,15 @@ Must NOT be on the team with the rest of the turret parts.
 Instead it must target the turret_breach.
 */
 
+//WF
+/*
 void infantry_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage);
 void infantry_stand (edict_t *self);
+*/
+void infantry_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage) { }
+void infantry_stand (edict_t *self) { }
+//WF
+
 void monster_use (edict_t *self, edict_t *other, edict_t *activator);
 
 void turret_driver_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
@@ -291,10 +298,14 @@ void turret_driver_think (edict_t *self)
 
 	if (!self->enemy)
 	{
+		//WF
+		/*
 		if (!FindTarget (self))
 			return;
 		self->monsterinfo.trail_time = level.time;
 		self->monsterinfo.aiflags &= ~AI_LOST_SIGHT;
+		*/
+		//WF
 	}
 	else
 	{
@@ -367,6 +378,8 @@ void turret_driver_link (edict_t *self)
 
 void SP_turret_driver (edict_t *self)
 {
+	//WF
+	/*
 	if (deathmatch->value)
 	{
 		G_FreeEdict (self);
@@ -410,4 +423,6 @@ void SP_turret_driver (edict_t *self)
 	self->nextthink = level.time + FRAMETIME;
 
 	gi.linkentity (self);
+	*/
+	//WF
 }

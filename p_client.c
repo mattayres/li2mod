@@ -2,6 +2,9 @@
 #include "m_player.h"
 
 void ClientUserinfoChanged (edict_t *ent, char *userinfo);
+//WF
+void ClientUserinfoChanged2 (edict_t *ent, char *userinfo);
+//WF
 
 void SP_misc_teleporter_dest (edict_t *ent);
 
@@ -189,6 +192,8 @@ qboolean IsNeutral (edict_t *ent)
 	return false;
 }
 
+//WF
+/*
 void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 {
 	int			mod;
@@ -384,7 +389,11 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 	if (deathmatch->value)
 		self->client->resp.score--;
 }
+*/
 
+//WF
+void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker);
+//WF
 
 void Touch_Item (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf);
 
@@ -403,6 +412,11 @@ void TossClientWeapon (edict_t *self)
 		item = NULL;
 	if (item && (strcmp (item->pickup_name, "Blaster") == 0))
 		item = NULL;
+
+	//WF
+	if(start_grenades->value && item && !strcmp(item->classname, "grenades"))
+		item = NULL;
+	//WF
 
 	if (!((int)(dmflags->value) & DF_QUAD_DROP))
 		quad = false;
@@ -489,6 +503,9 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	self->movetype = MOVETYPE_TOSS;
 
 	self->s.modelindex2 = 0;	// remove linked weapon model
+//ZOID
+	self->s.modelindex3 = 0;	// remove linked ctf flag
+//ZOID
 
 	self->s.angles[0] = 0;
 	self->s.angles[2] = 0;
@@ -507,9 +524,24 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 		LookAtKiller (self, inflictor, attacker);
 		self->client->ps.pmove.pm_type = PM_DEAD;
 		ClientObituary (self, inflictor, attacker);
+//ZOID
+		CTFFragBonuses(self, inflictor, attacker);
+//ZOID
+		//WF
+		Lithium_PlayerDie(attacker, self);
+		//WF
 		TossClientWeapon (self);
-		if (deathmatch->value)
-			Cmd_Help_f (self);		// show scores
+//ZOID
+		CTFPlayerResetGrapple(self);
+		CTFDeadDropFlag(self);
+		CTFDeadDropTech(self);
+//ZOID
+		//WF
+		if(!(self->layout & LAYOUT_SCORES))
+			Cmd_Score_f(self);
+//		if (deathmatch->value)
+//			Cmd_Help_f (self);		// show scores
+		//WF
 
 		// clear inventory
 		// this is kind of ugly, but it's how we want to handle keys in coop
@@ -534,6 +566,10 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 		for (n= 0; n < 4; n++)
 			ThrowGib (self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowClientHead (self, damage);
+//ZOID
+		self->client->anim_priority = ANIM_DEATH;
+		self->client->anim_end = 0;
+//ZOID
 
 		self->takedamage = DAMAGE_NO;
 	}
@@ -572,6 +608,10 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 
 	self->deadflag = DEAD_DEAD;
 
+	//WF
+	Rune_Drop(self);
+	//WF
+
 	gi.linkentity (self);
 }
 
@@ -596,6 +636,12 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.inventory[client->pers.selected_item] = 1;
 
 	client->pers.weapon = item;
+//ZOID
+	client->pers.lastweapon = item;
+
+	item = FindItem("Grapple");
+	client->pers.inventory[ITEM_INDEX(item)] = 1;
+//ZOID
 
 	client->pers.health			= 100;
 	client->pers.max_health		= 100;
@@ -608,14 +654,32 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.max_slugs		= 50;
 
 	client->pers.connected = true;
+
+	//WF
+	Var_InitClientPersistant(client);
+	//WF
 }
 
 
 void InitClientResp (gclient_t *client)
 {
+//ZOID
+	int ctf_team = client->resp.ctf_team;
+//ZOID
+
 	memset (&client->resp, 0, sizeof(client->resp));
+		
+//ZOID
+	client->resp.ctf_team = ctf_team;
+//ZOID
+
 	client->resp.enterframe = level.framenum;
 	client->resp.coop_respawn = client->pers;
+
+//ZOID
+	if (ctf->value && client->resp.ctf_team < CTF_TEAM1)
+		CTFAssignTeam(client);
+//ZOID
 }
 
 /*
@@ -858,7 +922,12 @@ void	SelectSpawnPoint (edict_t *ent, vec3_t origin, vec3_t angles)
 	edict_t	*spot = NULL;
 
 	if (deathmatch->value)
-		spot = SelectDeathmatchSpawnPoint ();
+//ZOID
+		if (ctf->value)
+			spot = SelectCTFSpawnPoint(ent);
+		else
+//ZOID
+			spot = SelectDeathmatchSpawnPoint ();
 	else if (coop->value)
 		spot = SelectCoopSpawnPoint (ent);
 
@@ -949,7 +1018,11 @@ void CopyToBodyQue (edict_t *ent)
 	body->solid = ent->solid;
 	body->clipmask = ent->clipmask;
 	body->owner = ent->owner;
-	body->movetype = ent->movetype;
+
+	// WF (fix bad movetype 4?)
+//	body->movetype = ent->movetype;
+	body->movetype = MOVETYPE_NONE;
+	// WF
 
 	body->die = body_die;
 	body->takedamage = DAMAGE_YES;
@@ -1102,7 +1175,10 @@ void PutClientInServer (edict_t *ent)
 		resp = client->resp;
 		memcpy (userinfo, client->pers.userinfo, sizeof(userinfo));
 		InitClientPersistant (client);
-		ClientUserinfoChanged (ent, userinfo);
+		//WF
+//		ClientUserinfoChanged (ent, userinfo);
+		ClientUserinfoChanged2 (ent, userinfo);
+		//WF
 	}
 	else if (coop->value)
 	{
@@ -1171,6 +1247,9 @@ void PutClientInServer (edict_t *ent)
 	client->ps.pmove.origin[0] = spawn_origin[0]*8;
 	client->ps.pmove.origin[1] = spawn_origin[1]*8;
 	client->ps.pmove.origin[2] = spawn_origin[2]*8;
+//ZOID
+	client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+//ZOID
 
 	if (deathmatch->value && ((int)dmflags->value & DF_FIXED_FOV))
 	{
@@ -1227,6 +1306,11 @@ void PutClientInServer (edict_t *ent)
 	} else
 		client->resp.spectator = false;
 
+//ZOID
+	if (CTFStartClient(ent))
+		return;
+//ZOID
+
 	if (!KillBox (ent))
 	{	// could't spawn in?
 	}
@@ -1235,6 +1319,11 @@ void PutClientInServer (edict_t *ent)
 
 	// force the current weapon up
 	client->newweapon = client->pers.weapon;
+
+	//WF
+	Lithium_PutClientInServer(ent);
+	//WF
+
 	ChangeWeapon (ent);
 }
 
@@ -1252,6 +1341,10 @@ void ClientBeginDeathmatch (edict_t *ent)
 
 	InitClientResp (ent->client);
 
+	//WF
+	Lithium_ClientBegin(ent);
+	//WF
+
 	// locate ent at a spawn point
 	PutClientInServer (ent);
 
@@ -1268,7 +1361,11 @@ void ClientBeginDeathmatch (edict_t *ent)
 		gi.multicast (ent->s.origin, MULTICAST_PVS);
 	}
 
-	gi.bprintf (PRINT_HIGH, "%s entered the game\n", ent->client->pers.netname);
+	//WF
+//	gi.bprintf (PRINT_HIGH, "%s entered the game\n", ent->client->pers.netname);
+	if(!strlen(bounce->string))
+		gi.bprintf (PRINT_HIGH, "%s entered the game (clients = %d)\n", ent->client->pers.netname, ++clients);
+	//WF
 
 	// make sure all view stuff is valid
 	ClientEndServerFrame (ent);
@@ -1349,10 +1446,15 @@ The game can override any of the settings in place
 (forcing skins or names, etc) before copying it off.
 ============
 */
-void ClientUserinfoChanged (edict_t *ent, char *userinfo)
+void ClientUserinfoChanged2 (edict_t *ent, char *userinfo)
 {
 	char	*s;
 	int		playernum;
+
+	//WF
+	if(strlen(ent->client->pers.userinfo))
+		Lithium_ClientUserinfoChanged(ent, userinfo);
+	//WF
 
 	// check for malformed or illegal info strings
 	if (!Info_Validate(userinfo))
@@ -1367,9 +1469,11 @@ void ClientUserinfoChanged (edict_t *ent, char *userinfo)
 	// set spectator
 	s = Info_ValueForKey (userinfo, "spectator");
 	// spectators are only supported in deathmatch
-	if (deathmatch->value && *s && strcmp(s, "0"))
-		ent->client->pers.spectator = true;
-	else
+	//WF
+//	if (deathmatch->value && *s && strcmp(s, "0"))
+//		ent->client->pers.spectator = true;
+//	else
+	//WF
 		ent->client->pers.spectator = false;
 
 	// set skin
@@ -1378,7 +1482,12 @@ void ClientUserinfoChanged (edict_t *ent, char *userinfo)
 	playernum = ent-g_edicts-1;
 
 	// combine name and skin into a configstring
-	gi.configstring (CS_PLAYERSKINS+playernum, va("%s\\%s", ent->client->pers.netname, s) );
+//ZOID
+	if (ctf->value)
+		CTFAssignSkin(ent, s);
+	else
+//ZOID
+		gi.configstring (CS_PLAYERSKINS+playernum, va("%s\\%s", ent->client->pers.netname, s) );
 
 	// fov
 	if (deathmatch->value && ((int)dmflags->value & DF_FIXED_FOV))
@@ -1405,6 +1514,11 @@ void ClientUserinfoChanged (edict_t *ent, char *userinfo)
 	strncpy (ent->client->pers.userinfo, userinfo, sizeof(ent->client->pers.userinfo)-1);
 }
 
+void ClientUserinfoChanged (edict_t *ent, char *userinfo) {
+	ClientUserinfoChanged2(ent, userinfo);
+	Lithium_MaxRate(ent);
+}
+
 
 /*
 ===========
@@ -1421,6 +1535,11 @@ loadgames will.
 qboolean ClientConnect (edict_t *ent, char *userinfo)
 {
 	char	*value;
+
+	//WF
+	if(!Lithium_ClientConnect(ent, userinfo))
+		return false;
+	//WF
 
 	// check to see if they are on the banned IP list
 	value = Info_ValueForKey (userinfo, "ip");
@@ -1469,15 +1588,32 @@ qboolean ClientConnect (edict_t *ent, char *userinfo)
 	if (ent->inuse == false)
 	{
 		// clear the respawning variables
+//ZOID -- force team join
+		ent->client->resp.ctf_team = -1;
+//ZOID
 		InitClientResp (ent->client);
 		if (!game.autosaved || !ent->client->pers.weapon)
 			InitClientPersistant (ent->client);
 	}
 
-	ClientUserinfoChanged (ent, userinfo);
+	//WF
+//	ClientUserinfoChanged (ent, userinfo);
+	ClientUserinfoChanged2 (ent, userinfo);
+	//WF
 
 	if (game.maxclients > 1)
-		gi.dprintf ("%s connected\n", ent->client->pers.netname);
+	//WF
+//		gi.dprintf ("%s connected\n", ent->client->pers.netname);
+	{
+		char *c, ipstr[32];
+		strcpy(ipstr, Info_ValueForKey(userinfo, "ip"));
+		c = strchr(ipstr, ':');
+		if(c)
+			*c = 0;
+
+		gi.dprintf ("%s connected (address = %s)\n", ent->client->pers.netname, ipstr);
+	}
+	//WF
 
 	ent->svflags = 0; // make sure we start with known default
 	ent->client->pers.connected = true;
@@ -1492,6 +1628,45 @@ Called when a player drops from the server.
 Will not be called between levels.
 ============
 */
+//WF
+void ClientDisconnect (edict_t *ent)
+{
+	int		playernum;
+
+	if(!ent->client)
+		return;
+
+	Rune_Drop(ent);
+	Lithium_ClientDisconnect(ent);
+
+//	gi.bprintf (PRINT_HIGH, "%s disconnected\n", ent->client->pers.netname);
+	if(!strlen(bounce->string))
+		gi.bprintf(PRINT_HIGH, "%s disconnected (clients = %d)\n", ent->client->pers.netname, --clients);
+
+//ZOID
+	CTFDeadDropFlag(ent);
+	CTFDeadDropTech(ent);
+//ZOID
+
+	if(!Lithium_IsObserver(ent)) {
+		gi.WriteByte(svc_muzzleflash);
+		gi.WriteShort(ent-g_edicts);
+		gi.WriteByte(MZ_LOGOUT);
+		gi.multicast(ent->s.origin, MULTICAST_PVS);
+	}
+
+	gi.unlinkentity (ent);
+	ent->s.modelindex = 0;
+	ent->solid = SOLID_NOT;
+	ent->inuse = false;
+	ent->classname = "disconnected";
+	ent->client->pers.connected = false;
+
+	playernum = ent-g_edicts-1;
+	gi.configstring (CS_PLAYERSKINS+playernum, "");
+}
+
+/*
 void ClientDisconnect (edict_t *ent)
 {
 	int		playernum;
@@ -1517,7 +1692,8 @@ void ClientDisconnect (edict_t *ent)
 	playernum = ent-g_edicts-1;
 	gi.configstring (CS_PLAYERSKINS+playernum, "");
 }
-
+*/
+//WF
 
 //==============================================================
 
@@ -1558,6 +1734,7 @@ This will be called once for each client frame, which will
 usually be a couple times for each server frame.
 ==============
 */
+extern lvar_t *intermission_time; //WF
 void ClientThink (edict_t *ent, usercmd_t *ucmd)
 {
 	gclient_t	*client;
@@ -1572,11 +1749,20 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	{
 		client->ps.pmove.pm_type = PM_FREEZE;
 		// can exit intermission after five seconds
-		if (level.time > level.intermissiontime + 5.0 
+		//WF
+//		if (level.time > level.intermissiontime + 5.0
+		if (level.time > level.intermissiontime + intermission_time->value
+		//WF
 			&& (ucmd->buttons & BUTTON_ANY) )
 			level.exitintermission = true;
 		return;
 	}
+
+	//WF
+	Lithium_ClientThink(ent, ucmd);
+	if(ent->client->chase_target)
+		return;
+	//WF
 
 	pm_passent = ent;
 
@@ -1665,6 +1851,11 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			VectorCopy (pm.viewangles, client->ps.viewangles);
 		}
 
+//ZOID
+	if (client->ctf_grapple)
+		CTFGrapplePull(client->ctf_grapple);
+//ZOID
+
 		gi.linkentity (ent);
 
 		if (ent->movetype != MOVETYPE_NOCLIP)
@@ -1707,7 +1898,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			} else
 				GetChaseTarget(ent);
 
-		} else if (!client->weapon_thunk) {
+		} 
+		else if (!client->weapon_thunk) {
 			client->weapon_thunk = true;
 			Think_Weapon (ent);
 		}
@@ -1725,6 +1917,16 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		} else
 			client->ps.pmove.pm_flags &= ~PMF_JUMP_HELD;
 	}
+
+//ZOID
+//regen tech
+	CTFApplyRegeneration(ent);
+//ZOID
+
+   //WF (Orange 2 Hook)
+   if (client->hook_on && VectorLength (ent->velocity) < 1)
+      client->ps.pmove.gravity = 0;
+   //WF
 
 	// update chase cam if being followed
 	for (i = 1; i <= maxclients->value; i++) {
@@ -1747,6 +1949,10 @@ void ClientBeginServerFrame (edict_t *ent)
 {
 	gclient_t	*client;
 	int			buttonMask;
+
+	//WF
+	Lithium_ClientBeginFrame(ent);
+	//WF
 
 	if (level.intermissiontime)
 		return;

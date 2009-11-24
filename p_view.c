@@ -491,6 +491,11 @@ void P_FallingDamage (edict_t *ent)
 	if (ent->movetype == MOVETYPE_NOCLIP)
 		return;
 
+	//WF (Orange 2 Hook) fixes falling issue
+	if(ent->client->hook_out && !ent->groundentity)
+		return;
+	//WF
+
 	if ((ent->client->oldvelocity[2] < 0) && (ent->velocity[2] > ent->client->oldvelocity[2]) && (!ent->groundentity))
 	{
 		delta = ent->client->oldvelocity[2];
@@ -502,6 +507,14 @@ void P_FallingDamage (edict_t *ent)
 		delta = ent->velocity[2] - ent->client->oldvelocity[2];
 	}
 	delta = delta*delta * 0.0001;
+
+//ZOID
+	// never take damage if just release grapple or on grapple
+	if (level.time - ent->client->ctf_grapplereleasetime <= FRAMETIME * 2 ||
+		(ent->client->ctf_grapple && 
+		ent->client->ctf_grapplestate > CTF_GRAPPLE_STATE_FLY))
+		return;
+//ZOID
 
 	// never take falling damage if completely underwater
 	if (ent->waterlevel == 3)
@@ -539,6 +552,10 @@ void P_FallingDamage (edict_t *ent)
 		if (damage < 1)
 			damage = 1;
 		VectorSet (dir, 0, 0, 1);
+
+		//WF
+		damage = damage * fall_damagemod->value;
+		//WF
 
 		if (!deathmatch->value || !((int)dmflags->value & DF_NO_FALLING) )
 			T_Damage (ent, world, world, dir, ent->s.origin, vec3_origin, damage, 0, 0, MOD_FALLING);
@@ -748,11 +765,31 @@ void G_SetClientEffects (edict_t *ent)
 		}
 	}
 
-	if (ent->client->quad_framenum > level.framenum)
+//ZOID
+	CTFEffects(ent);
+//ZOID
+
+	if (ent->client->quad_framenum > level.framenum
+//WF
+		&& (level.framenum & 8 || ctf_coloredquad->value || !ctf->value)
+//WF
+		)
 	{
 		remaining = ent->client->quad_framenum - level.framenum;
 		if (remaining > 30 || (remaining & 4) )
-			ent->s.effects |= EF_QUAD;
+//WF
+		{
+			if(ctf->value && ctf_coloredquad->value && ent->client->resp.ctf_team == CTF_TEAM1)
+			{
+				ent->s.effects |= EF_COLOR_SHELL;
+				ent->s.renderfx |= RF_SHELL_RED;
+			}
+			else
+//WF
+				ent->s.effects |= EF_QUAD;
+//WF
+		}
+//WF
 	}
 
 	if (ent->client->invincible_framenum > level.framenum)
@@ -768,6 +805,10 @@ void G_SetClientEffects (edict_t *ent)
 		ent->s.effects |= EF_COLOR_SHELL;
 		ent->s.renderfx |= (RF_SHELL_RED|RF_SHELL_GREEN|RF_SHELL_BLUE);
 	}
+
+	//WF
+	Lithium_SetClientEffects(ent);
+	//WF
 }
 
 
@@ -894,10 +935,18 @@ newanim:
 
 	if (!ent->groundentity)
 	{
+//ZOID: if on grapple, don't go into jump frame, go into standing
+//frame
+		if (client->ctf_grapple) {
+			ent->s.frame = FRAME_stand01;
+			client->anim_end = FRAME_stand40;
+		} else {
+//ZOID
 		client->anim_priority = ANIM_JUMP;
 		if (ent->s.frame != FRAME_jump2)
 			ent->s.frame = FRAME_jump1;
 		client->anim_end = FRAME_jump2;
+	}
 	}
 	else if (run)
 	{	// running
@@ -943,6 +992,10 @@ void ClientEndServerFrame (edict_t *ent)
 
 	current_player = ent;
 	current_client = ent->client;
+
+	//WF
+	Lithium_ClientEndFrame(ent);
+	//WF
 
 	//
 	// If the origin or velocity have changed since ClientThink(),
@@ -1058,11 +1111,19 @@ void ClientEndServerFrame (edict_t *ent)
 	VectorClear (ent->client->kick_origin);
 	VectorClear (ent->client->kick_angles);
 
+	//WF
+	/*
 	// if the scoreboard is up, update it
 	if (ent->client->showscores && !(level.framenum & 31) )
 	{
+//ZOID
+		if (ent->client->menu) {
+			PMenu_Update(ent);
+		} else
+//ZOID
 		DeathmatchScoreboardMessage (ent, ent->enemy);
 		gi.unicast (ent, false);
 	}
+	*/
+	//WF
 }
-

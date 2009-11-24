@@ -42,13 +42,17 @@ void MoveClientToIntermission (edict_t *ent)
 	ent->solid = SOLID_NOT;
 
 	// add the layout
-
+//WF
+	ent->layout = LAYOUT_SCORES;
+	ent->layout_update = true;
+/*
 	if (deathmatch->value || coop->value)
 	{
 		DeathmatchScoreboardMessage (ent, NULL);
 		gi.unicast (ent, true);
 	}
-
+*/
+//WF
 }
 
 void BeginIntermission (edict_t *targ)
@@ -58,6 +62,15 @@ void BeginIntermission (edict_t *targ)
 
 	if (level.intermissiontime)
 		return;		// already activated
+
+//ZOID
+	if (deathmatch->value && ctf->value)
+		CTFCalcScores();
+//ZOID
+
+	//WF
+	Lithium_BeginIntermission();
+	//WF
 
 	game.autosaved = false;
 
@@ -73,6 +86,13 @@ void BeginIntermission (edict_t *targ)
 
 	level.intermissiontime = level.time;
 	level.changemap = targ->map;
+
+	//WF
+	if(!countclients()) {
+		ExitLevel();
+		return;
+	}
+	//WF
 
 	if (strstr(level.changemap, "*"))
 	{
@@ -135,13 +155,127 @@ void BeginIntermission (edict_t *targ)
 	}
 }
 
-
+//WF
 /*
 ==================
 DeathmatchScoreboardMessage
 
 ==================
 */
+void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
+{
+	char	entry[1024];
+	char	string[1400];
+	int		stringlength;
+	int		i, j, k;
+	//WF
+//	int		sorted[MAX_CLIENTS];
+//	int		sortedscores[MAX_CLIENTS];
+//	int		score, total;
+	//WF
+	int		picnum;
+	int		x, y;
+	gclient_t	*cl;
+	edict_t		*cl_ent;
+	char	*tag;
+
+	/*
+	// sort the clients by score
+	total = 0;
+	for (i=0 ; i<game.maxclients ; i++)
+	{
+		cl_ent = g_edicts + 1 + i;
+		//WF
+//		if(!cl_ent->inuse)
+		if(!cl_ent->inuse || cl_ent->lithium_flags & LITHIUM_HIDDEN)
+			continue;
+		//WF
+		score = game.clients[i].resp.score;
+		//WF
+		if(cl_ent->lithium_flags & LITHIUM_OBSERVER)
+			score = -999;
+		//WF
+		for (j=0 ; j<total ; j++)
+		{
+			if (score > sortedscores[j])
+				break;
+		}
+		for (k=total ; k>j ; k--)
+		{
+			sorted[k] = sorted[k-1];
+			sortedscores[k] = sortedscores[k-1];
+		}
+		sorted[j] = i;
+		sortedscores[j] = score;
+		total++;
+	}
+	*/
+	//WF
+
+	// print level name and exit rules
+	string[0] = 0;
+
+	stringlength = strlen(string);
+
+	//WF
+	/*
+	// add the clients in sorted order
+	if (total > 12)
+		total = 12;
+
+	for (i=0 ; i<total ; i++)
+	{
+		cl = &game.clients[sorted[i]];
+		cl_ent = g_edicts + 1 + sorted[i];
+	*/
+	for (i=0 ; i<MIN(sorted_ents, 12) ; i++)
+	{
+		cl_ent = sorted_ent[i];
+		cl = cl_ent->client;
+		k = cl_ent - g_edicts - 1;
+	//WF
+
+		picnum = gi.imageindex ("i_fixme");
+		x = (i>=6) ? 160 : 0;
+		y = 32 + 32 * (i%6);
+
+		// add a dogtag
+		if (cl_ent == ent)
+			tag = "tag1";
+		else if (cl_ent == killer)
+			tag = "tag2";
+		else
+			tag = NULL;
+		if (tag)
+		{
+			Com_sprintf (entry, sizeof(entry),
+				"xv %i yv %i picn %s ",x+32, y, tag);
+			j = strlen(entry);
+			if (stringlength + j > 1024)
+				break;
+			strcpy (string + stringlength, entry);
+			stringlength += j;
+		}
+
+		// send the layout
+		Com_sprintf (entry, sizeof(entry),
+			"client %i %i %i %i %i %i ",
+//WF
+//			x, y, sorted[i], cl->resp.score, cl->ping, (level.framenum - cl->resp.enterframe)/600);
+			x, y, k, cl->resp.score, cl->ping, (level.framenum - cl->resp.enterframe)/600);
+//WF
+		j = strlen(entry);
+		if (stringlength + j > 1024)
+			break;
+		strcpy (string + stringlength, entry);
+		stringlength += j;
+	}
+
+	gi.WriteByte (svc_layout);
+	gi.WriteString (string);
+}
+
+/*
 void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 {
 	char	entry[1024];
@@ -230,7 +364,8 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
 }
-
+*/
+//WF
 
 /*
 ==================
@@ -256,6 +391,15 @@ Display the scoreboard
 */
 void Cmd_Score_f (edict_t *ent)
 {
+//ZOID
+//WF	if (ent->client->menu)
+//WF		PMenu_Close(ent);
+//ZOID
+
+	//WF
+	Lithium_LayoutTog(ent, LAYOUT_SCORES);
+
+	/*
 	ent->client->showinventory = false;
 	ent->client->showhelp = false;
 
@@ -270,6 +414,8 @@ void Cmd_Score_f (edict_t *ent)
 
 	ent->client->showscores = true;
 	DeathmatchScoreboard (ent);
+	*/
+	//WF
 }
 
 
@@ -500,7 +646,16 @@ void G_SetStats (edict_t *ent)
 	else
 		ent->client->ps.stats[STAT_HELPICON] = 0;
 
-	ent->client->ps.stats[STAT_SPECTATOR] = 0;
+	//WF
+//	ent->client->ps.stats[STAT_SPECTATOR] = 0;
+	//WF
+
+	//WF
+	Lithium_SetStats(ent);
+	//WF
+//ZOID
+//	SetCTFStats(ent);
+//ZOID
 }
 
 /*
@@ -531,8 +686,14 @@ void G_SetSpectatorStats (edict_t *ent)
 {
 	gclient_t *cl = ent->client;
 
-	if (!cl->chase_target)
+	//WF
+//	if (!cl->chase_target)
+	//WF
 		G_SetStats (ent);
+
+	//WF
+	return;
+	//WF
 
 	cl->ps.stats[STAT_SPECTATOR] = 1;
 

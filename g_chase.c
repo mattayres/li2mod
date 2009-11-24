@@ -1,5 +1,7 @@
 #include "g_local.h"
 
+//WF
+/*
 void UpdateChaseCam(edict_t *ent)
 {
 	vec3_t o, ownerv, goal;
@@ -136,6 +138,8 @@ void ChasePrev(edict_t *ent)
 	ent->client->chase_target = e;
 	ent->client->update_chase = true;
 }
+*/
+//WF
 
 void GetChaseTarget(edict_t *ent)
 {

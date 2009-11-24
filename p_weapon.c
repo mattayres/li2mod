@@ -7,11 +7,17 @@
 static qboolean	is_quad;
 static byte		is_silenced;
 
+//WF	
+static int rotation_adjust;
+//WF
 
 void weapon_grenade_fire (edict_t *ent, qboolean held);
 
 
-static void P_ProjectSource (gclient_t *client, vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result)
+//WF
+//static
+//WF
+void P_ProjectSource (gclient_t *client, vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result)
 {
 	vec3_t	_distance;
 
@@ -112,6 +118,13 @@ qboolean Pickup_Weapon (edict_t *ent, edict_t *other)
 
 	other->client->pers.inventory[index]++;
 
+	//WF
+	if(ent->spawnflags & DROPPED_ITEM) {
+		ammo = FindItem(ent->item->ammo);
+		Add_Ammo(other, ammo, (int)((float)ammo->quantity * dropweapammo->value));
+	}
+	//WF
+
 	if (!(ent->spawnflags & DROPPED_ITEM) )
 	{
 		// give them some ammo with it
@@ -135,10 +148,16 @@ qboolean Pickup_Weapon (edict_t *ent, edict_t *other)
 		}
 	}
 
+	//WF
+	other->safety_time = 0;
+	Weapon_PickBest(ent, other);
+	/*
 	if (other->client->pers.weapon != ent->item && 
 		(other->client->pers.inventory[index] == 1) &&
 		( !deathmatch->value || other->client->pers.weapon == FindItem("blaster") ) )
 		other->client->newweapon = ent->item;
+	*/
+	//WF
 
 	return true;
 }
@@ -155,6 +174,13 @@ current
 void ChangeWeapon (edict_t *ent)
 {
 	int i;
+
+	//WF
+	if(Lithium_IsObserver(ent)) {
+		ent->client->ps.gunindex = 0;
+		return;
+	}
+	//WF
 
 	if (ent->client->grenade_time)
 	{
@@ -316,6 +342,13 @@ void Use_Weapon (edict_t *ent, gitem_t *item)
 		}
 	}
 
+	//WF
+	if(item == FindItem("Grapple") && !ctf_grapple->value) {
+		gi.cprintf(ent, PRINT_HIGH, "CTF grapple disabled on this server.\n");
+		return;
+	}
+	//WF
+
 	// change to this weapon when down
 	ent->client->newweapon = item;
 }
@@ -358,7 +391,7 @@ A generic function to handle the basics of weapon thinking
 #define FRAME_IDLE_FIRST		(FRAME_FIRE_LAST + 1)
 #define FRAME_DEACTIVATE_FIRST	(FRAME_IDLE_LAST + 1)
 
-void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, int *pause_frames, int *fire_frames, void (*fire)(edict_t *ent))
+void Weapon_Generic2 (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, int *pause_frames, int *fire_frames, void (*fire)(edict_t *ent))
 {
 	int		n;
 
@@ -495,8 +528,17 @@ void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 		{
 			if (ent->client->ps.gunframe == fire_frames[n])
 			{
+//ZOID
+				if (!CTFApplyStrengthSound(ent))
+//ZOID
 				if (ent->client->quad_framenum > level.framenum)
 					gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage3.wav"), 1, ATTN_NORM, 0);
+//ZOID
+				CTFApplyHasteSound(ent);
+//ZOID
+				//WF
+				Rune_FireSound(ent);
+				//WF
 
 				fire (ent);
 				break;
@@ -510,6 +552,49 @@ void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 			ent->client->weaponstate = WEAPON_READY;
 	}
 }
+
+//WF ZOID
+void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, int *pause_frames, int *fire_frames, void (*fire)(edict_t *ent))
+{
+	int oldstate = ent->client->weaponstate;
+
+	//WF ### Hentai ###
+	if(ent->deadflag || ent->s.modelindex != 255)
+		return;
+	//WF ### Hentai ###
+
+	rotation_adjust = 0;
+	Weapon_Generic2 (ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST, FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, pause_frames, fire_frames, fire);
+
+	// run the weapon frame again if hasted
+	if(!stricmp(ent->client->pers.weapon->pickup_name, "Grapple") &&
+		ent->client->weaponstate == WEAPON_FIRING)
+		return;
+
+	if(fast_wep->value && (ent->client->weaponstate == WEAPON_ACTIVATING || ent->client->weaponstate == WEAPON_DROPPING)) {
+		int i;
+		for(i = 0; i < fast_wep->value; i++)
+			if(oldstate == ent->client->weaponstate)
+				Weapon_Generic2(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST,	FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, pause_frames, fire_frames, fire);
+			else
+				break;
+		return;
+	}
+
+	if((CTFApplyHaste(ent) ||
+		(!Q_stricmp(ent->client->pers.weapon->pickup_name, "Grapple") &&
+		ent->client->weaponstate != WEAPON_FIRING))
+		&& oldstate == ent->client->weaponstate) {
+		rotation_adjust = 1;
+		Weapon_Generic2(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST,	FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, pause_frames, fire_frames, fire);
+	}
+
+	if(Rune_HasHaste(ent) && oldstate == ent->client->weaponstate) {
+		rotation_adjust = 2;
+		Weapon_Generic2(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST,	FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, pause_frames, fire_frames, fire);
+	}
+}
+//WF ZOID
 
 
 /*
@@ -529,12 +614,18 @@ void weapon_grenade_fire (edict_t *ent, qboolean held)
 	vec3_t	offset;
 	vec3_t	forward, right;
 	vec3_t	start;
-	int		damage = 125;
+	//WF
+//	int		damage = 125;
+	int		damage = grenade_damage->value;
+	//WF
 	float	timer;
 	int		speed;
 	float	radius;
 
-	radius = damage+40;
+	//WF
+//	radius = damage+40;
+	radius = grenade_damage->value;
+	//WF
 	if (is_quad)
 		damage *= 4;
 
@@ -745,9 +836,17 @@ void Weapon_RocketLauncher_Fire (edict_t *ent)
 	float	damage_radius;
 	int		radius_damage;
 
+	//WF
+	damage = (int)(rocket_damage->value + random() * rocket_damage2->value);
+	radius_damage = rocket_rdamage->value;
+	damage_radius = rocket_radius->value;
+	/*
 	damage = 100 + (int)(random() * 20.0);
 	radius_damage = 120;
 	damage_radius = 120;
+	*/
+	//WF
+
 	if (is_quad)
 	{
 		damage *= 4;
@@ -761,7 +860,10 @@ void Weapon_RocketLauncher_Fire (edict_t *ent)
 
 	VectorSet(offset, 8, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
+	//WF
+//	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
+	fire_rocket (ent, start, forward, damage, rocket_speed->value, damage_radius, radius_damage);
+	//WF
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -810,7 +912,13 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	VectorScale (forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
 
-	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	//WF
+//	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	if(hyper)
+		fire_blaster (ent, start, forward, damage, hyperblaster_speed->value, effect, hyper);
+	else
+		fire_blaster (ent, start, forward, damage, blaster_speed->value, effect, hyper);
+	//WF
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -829,10 +937,16 @@ void Weapon_Blaster_Fire (edict_t *ent)
 {
 	int		damage;
 
+	//WF
+	/*
 	if (deathmatch->value)
 		damage = 15;
 	else
 		damage = 10;
+	*/
+	damage = blaster_damage->value;
+	//WF
+
 	Blaster_Fire (ent, vec3_origin, damage, false, EF_BLASTER);
 	ent->client->ps.gunframe++;
 }
@@ -872,7 +986,10 @@ void Weapon_HyperBlaster_Fire (edict_t *ent)
 		}
 		else
 		{
-			rotation = (ent->client->ps.gunframe - 5) * 2*M_PI/6;
+			//WF
+//			rotation = (ent->client->ps.gunframe - 5) * 2*M_PI/6;
+			rotation = (ent->client->ps.gunframe - 5 + rotation_adjust) * 2*M_PI/6;
+			//WF
 			offset[0] = -4 * sin(rotation);
 			offset[1] = 0;
 			offset[2] = 4 * cos(rotation);
@@ -885,7 +1002,10 @@ void Weapon_HyperBlaster_Fire (edict_t *ent)
 				damage = 15;
 			else
 				damage = 20;
-			Blaster_Fire (ent, offset, damage, true, effect);
+			//WF
+//			Blaster_Fire (ent, offset, damage, true, effect);
+			Blaster_Fire (ent, offset, hyperblaster_damage->value, true, effect);
+			//WF
 			if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
 				ent->client->pers.inventory[ent->client->ammo_index]--;
 
@@ -937,7 +1057,10 @@ void Machinegun_Fire (edict_t *ent)
 	vec3_t		start;
 	vec3_t		forward, right;
 	vec3_t		angles;
-	int			damage = 8;
+	//WF
+//	int			damage = 8;
+	int			damage = machinegun_damage->value;
+	//WF
 	int			kick = 2;
 	vec3_t		offset;
 
@@ -992,7 +1115,10 @@ void Machinegun_Fire (edict_t *ent)
 	AngleVectors (angles, forward, right, NULL);
 	VectorSet(offset, 0, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_bullet (ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
+	//WF
+//	fire_bullet (ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
+	fire_bullet (ent, start, forward, damage, kick, machinegun_hspread->value, machinegun_vspread->value, MOD_MACHINEGUN);
+	//WF
 
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
@@ -1036,10 +1162,15 @@ void Chaingun_Fire (edict_t *ent)
 	int			damage;
 	int			kick = 2;
 
+	//WF
+	/*
 	if (deathmatch->value)
 		damage = 6;
 	else
 		damage = 8;
+	*/
+	damage = chaingun_damage->value;
+	//WF
 
 	if (ent->client->ps.gunframe == 5)
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("weapons/chngnu1a.wav"), 1, ATTN_IDLE, 0);
@@ -1167,7 +1298,10 @@ void weapon_shotgun_fire (edict_t *ent)
 	vec3_t		start;
 	vec3_t		forward, right;
 	vec3_t		offset;
-	int			damage = 4;
+	//WF
+//	int			damage = 4;
+	int			damage = shotgun_damage->value;
+	//WF
 	int			kick = 8;
 
 	if (ent->client->ps.gunframe == 9)
@@ -1190,10 +1324,15 @@ void weapon_shotgun_fire (edict_t *ent)
 		kick *= 4;
 	}
 
+	//WF
+	/*
 	if (deathmatch->value)
 		fire_shotgun (ent, start, forward, damage, kick, 500, 500, DEFAULT_DEATHMATCH_SHOTGUN_COUNT, MOD_SHOTGUN);
 	else
 		fire_shotgun (ent, start, forward, damage, kick, 500, 500, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
+	*/
+	fire_shotgun (ent, start, forward, damage, kick, shotgun_hspread->value, shotgun_vspread->value, shotgun_count->value, MOD_SHOTGUN);
+	//WF
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -1223,7 +1362,10 @@ void weapon_supershotgun_fire (edict_t *ent)
 	vec3_t		forward, right;
 	vec3_t		offset;
 	vec3_t		v;
-	int			damage = 6;
+	//WF
+//	int			damage = 6;
+	int			damage = sshotgun_damage->value;
+	//WF
 	int			kick = 12;
 
 	AngleVectors (ent->client->v_angle, forward, right, NULL);
@@ -1244,10 +1386,16 @@ void weapon_supershotgun_fire (edict_t *ent)
 	v[YAW]   = ent->client->v_angle[YAW] - 5;
 	v[ROLL]  = ent->client->v_angle[ROLL];
 	AngleVectors (v, forward, NULL, NULL);
-	fire_shotgun (ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT/2, MOD_SSHOTGUN);
+	//WF
+//	fire_shotgun (ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT/2, MOD_SSHOTGUN);
+	fire_shotgun (ent, start, forward, damage, kick, sshotgun_hspread->value, sshotgun_vspread->value, sshotgun_count->value/2, MOD_SSHOTGUN);
+	//WF
 	v[YAW]   = ent->client->v_angle[YAW] + 5;
 	AngleVectors (v, forward, NULL, NULL);
-	fire_shotgun (ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT/2, MOD_SSHOTGUN);
+	//WF
+//	fire_shotgun (ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT/2, MOD_SSHOTGUN);
+	fire_shotgun (ent, start, forward, damage, kick, sshotgun_hspread->value, sshotgun_vspread->value, sshotgun_count->value/2, MOD_SSHOTGUN);
+	//WF
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -1290,7 +1438,10 @@ void weapon_railgun_fire (edict_t *ent)
 
 	if (deathmatch->value)
 	{	// normal damage is too extreme in dm
-		damage = 100;
+		//WF
+//		damage = 100;
+		damage = railgun_damage->value;
+		//WF
 		kick = 200;
 	}
 	else
@@ -1350,12 +1501,20 @@ void weapon_bfg_fire (edict_t *ent)
 	vec3_t	offset, start;
 	vec3_t	forward, right;
 	int		damage;
-	float	damage_radius = 1000;
+	//WF
+//	float	damage_radius = 1000;
+	float	damage_radius = bfg_radius->value;
+	//WF
 
+	//WF
+	/*
 	if (deathmatch->value)
 		damage = 200;
 	else
 		damage = 500;
+	*/
+	damage = bfg_damage->value;
+	//WF
 
 	if (ent->client->ps.gunframe == 9)
 	{
@@ -1393,7 +1552,10 @@ void weapon_bfg_fire (edict_t *ent)
 
 	VectorSet(offset, 8, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_bfg (ent, start, forward, damage, 400, damage_radius);
+	//WF
+//	fire_bfg (ent, start, forward, damage, 400, damage_radius);
+	fire_bfg (ent, start, forward, damage, bfg_speed->value, damage_radius);
+	//WF
 
 	ent->client->ps.gunframe++;
 

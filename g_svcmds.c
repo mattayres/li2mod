@@ -275,7 +275,43 @@ void	ServerCommand (void)
 		SVCmd_ListIP_f ();
 	else if (Q_stricmp (cmd, "writeip") == 0)
 		SVCmd_WriteIP_f ();
+	//WF
+	else if(Q_stricmp (cmd, "upgrade") == 0) {
+		gi.cvar_set("upgrade", "1");
+		end_time = level.time;
+	}
+	else if(Q_stricmp (cmd, "bounce") == 0) {
+		edict_t *ent;
+		int i;
+
+		gi.cvar_set(bounce->name, gi.argv(2));
+		for(i = 0; i < game.maxclients; i++) {
+			ent = g_edicts + 1 + i;
+			if(ent->inuse) {
+				char stuff[80];
+				sprintf(stuff, "connect %s\n", gi.argv(2));
+				stuffcmd(ent, stuff);
+				gi.dprintf("%s bounced to %s\n", ent->client->pers.netname, gi.argv(2));
+			}
+		}
+
+		gi.cvar_set("bounce", gi.argv(2));
+	}
+	else if(Q_stricmp (cmd, "ban") == 0) {
+		Admin_Ban(NULL);
+	}
+	else if(Q_stricmp (cmd, "timeleft") == 0) {
+		int sec = (int)(timelimit->value * 60 + empty_time - level.time);
+		gi.cprintf(NULL, PRINT_HIGH, "Time left is %d:%02d\n", sec / 60, sec % 60);
+	}
+	else if(Q_stricmp (cmd, "highscores") == 0 || Q_stricmp (cmd, "hiscores") == 0) {
+		Highscores_List(NULL);
+	}
+	else if(Q_stricmp (cmd, "nextmap") == 0)
+		end_time = level.time;
+	else if(cmd[0] == '.')
+		LNet_SV(gi.args());
+	//WF
 	else
 		gi.cprintf (NULL, PRINT_HIGH, "Unknown server command \"%s\"\n", cmd);
 }
-

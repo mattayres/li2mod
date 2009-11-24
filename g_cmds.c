@@ -147,6 +147,13 @@ void Cmd_Give_f (edict_t *ent)
 
 	name = gi.args();
 
+	//WF
+	if(Lithium_IsObserver(ent))
+		return;
+	if(Rune_Give(ent, name))
+		return;
+	//WF
+
 	if (Q_stricmp(name, "all") == 0)
 		give_all = true;
 	else
@@ -399,8 +406,24 @@ void Cmd_Use_f (edict_t *ent)
 		return;
 	}
 
+	//WF
+	// what the hell it->use can be NULL?
+	if(!it->use)
+		return;
+	//WF
+
 	it->use (ent, it);
 }
+
+//WF
+void Tech_Drop(edict_t *ent) {
+	gitem_t	*it;
+	if((it = CTFWhat_Tech(ent)) != NULL)
+		it->drop(ent, it);
+}
+extern lvar_t *use_runes;
+extern lvar_t *ctf_techs;
+//WF
 
 
 /*
@@ -415,6 +438,28 @@ void Cmd_Drop_f (edict_t *ent)
 	int			index;
 	gitem_t		*it;
 	char		*s;
+
+	//WF
+	if(!Q_stricmp(gi.args(), "tech")) {
+		if(ctf_techs->value)
+			Tech_Drop(ent);
+		else if(use_runes->value)
+			Rune_Drop(ent);
+		return;
+	}
+		
+	if(!Q_stricmp(gi.args(), "rune")) {
+		if(use_runes->value)
+			Rune_Drop(ent);
+		else if(ctf_techs->value)
+			Tech_Drop(ent);
+		return;
+	}
+
+	//no dropping until we have teamplay
+	if(!ctf->value)
+		return;
+	//WF
 
 	s = gi.args();
 	it = FindItem (s);
@@ -454,11 +499,28 @@ void Cmd_Inven_f (edict_t *ent)
 	cl->showscores = false;
 	cl->showhelp = false;
 
+//ZOID
+	/*//WF
+	if (ent->client->menu) {
+		PMenu_Close(ent);
+		ent->client->update_chase = true;
+		return;
+	}
+	*///WF
+//ZOID
+
 	if (cl->showinventory)
 	{
 		cl->showinventory = false;
 		return;
 	}
+
+//ZOID
+	if (ctf->value && cl->resp.ctf_team == CTF_NOTEAM) {
+		CTFOpenJoinMenu(ent);
+		return;
+	}
+//ZOID
 
 	cl->showinventory = true;
 
@@ -470,6 +532,7 @@ void Cmd_Inven_f (edict_t *ent)
 	gi.unicast (ent, true);
 }
 
+
 /*
 =================
 Cmd_InvUse_f
@@ -479,6 +542,15 @@ void Cmd_InvUse_f (edict_t *ent)
 {
 	gitem_t		*it;
 
+//ZOID
+	/*//WF
+	if (ent->client->menu) {
+		PMenu_Select(ent);
+		return;
+	}
+	*///WF
+//ZOID
+	
 	ValidateSelectedItem (ent);
 
 	if (ent->client->pers.selected_item == -1)
@@ -495,6 +567,25 @@ void Cmd_InvUse_f (edict_t *ent)
 	}
 	it->use (ent, it);
 }
+
+//ZOID
+/*
+=================
+Cmd_LastWeap_f
+=================
+*/
+void Cmd_LastWeap_f (edict_t *ent)
+{
+	gclient_t	*cl;
+
+	cl = ent->client;
+
+	if (!cl->pers.weapon || !cl->pers.lastweapon)
+		return;
+
+	cl->pers.lastweapon->use (ent, cl->pers.lastweapon);
+}
+//ZOID
 
 /*
 =================
@@ -604,6 +695,10 @@ void Cmd_InvDrop_f (edict_t *ent)
 {
 	gitem_t		*it;
 
+	//WF
+	return;
+	//WF
+
 	ValidateSelectedItem (ent);
 
 	if (ent->client->pers.selected_item == -1)
@@ -628,12 +723,29 @@ Cmd_Kill_f
 */
 void Cmd_Kill_f (edict_t *ent)
 {
+//ZOID
+	if(ent->solid == SOLID_NOT)
+		return;
+//ZOID
+	//WF
+	if(ent->client->chase_target)
+		return;
+	//WF
+
 	if((level.time - ent->client->respawn_time) < 5)
 		return;
 	ent->flags &= ~FL_GODMODE;
 	ent->health = 0;
 	meansOfDeath = MOD_SUICIDE;
 	player_die (ent, ent, ent, 100000, vec3_origin);
+
+	//WF
+	ent->suicides++;
+	if(use_suicidekick->value && ent->suicides > 3) {
+		gi.bprintf(PRINT_HIGH, ">>> Kicking %s for too many suicides.\n", ent->client->pers.netname);
+		stuffcmd(ent, "disconnect\n");
+	}
+	//WF
 }
 
 /*
@@ -646,6 +758,11 @@ void Cmd_PutAway_f (edict_t *ent)
 	ent->client->showscores = false;
 	ent->client->showhelp = false;
 	ent->client->showinventory = false;
+//ZOID
+//WF	if (ent->client->menu)
+//WF		PMenu_Close(ent);
+	ent->client->update_chase = true;
+//ZOID
 }
 
 
@@ -776,6 +893,11 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 	if (gi.argc () < 2 && !arg0)
 		return;
 
+	//WF
+	if(!Lithium_CmdSay(ent))
+		return;
+	//WF
+
 	if (!((int)(dmflags->value) & (DF_MODELTEAMS | DF_SKINTEAMS)))
 		team = false;
 
@@ -893,6 +1015,10 @@ void ClientCommand (edict_t *ent)
 	if (!ent->client)
 		return;		// not fully in game yet
 
+	//WF
+	if(Lithium_ClientCommand(ent))
+		return;
+
 	cmd = gi.argv(0);
 
 	if (Q_stricmp (cmd, "players") == 0)
@@ -905,11 +1031,24 @@ void ClientCommand (edict_t *ent)
 		Cmd_Say_f (ent, false, false);
 		return;
 	}
-	if (Q_stricmp (cmd, "say_team") == 0)
-	{
-		Cmd_Say_f (ent, true, false);
-		return;
+
+	//WF
+	if(ctf->value) {
+		if (Q_stricmp (cmd, "say_team") == 0 || Q_stricmp (cmd, "steam") == 0)
+		{
+			CTFSay_Team(ent, gi.args());
+			return;
+		}
 	}
+	else {
+	//WF
+		if (Q_stricmp (cmd, "say_team") == 0)
+		{
+			Cmd_Say_f (ent, true, false);
+			return;
+		}
+	}
+
 	if (Q_stricmp (cmd, "score") == 0)
 	{
 		Cmd_Score_f (ent);
@@ -968,6 +1107,16 @@ void ClientCommand (edict_t *ent)
 		Cmd_Wave_f (ent);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
+//ZOID
+	else if (Q_stricmp (cmd, "team") == 0)
+		CTFTeam_f (ent);
+	else if (Q_stricmp(cmd, "id") == 0)
+		CTFID_f (ent);
+//ZOID
+	//WF
+	else if (LNet_ClientCommand(ent))
+		return;
+	//WF
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
