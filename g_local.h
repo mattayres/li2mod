@@ -1016,6 +1016,9 @@ struct gclient_s
 //WF
 typedef struct pvar_s pvar_t;
 typedef struct lclient_s lclient_t;
+#ifndef WIN32
+	#define stricmp strcasecmp
+#endif
 //WF
 
 struct edict_s
