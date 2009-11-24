@@ -33,14 +33,11 @@
 
 ARCH=i386
 CC=gcc
-BASE_CFLAGS=-Dstricmp=strcasecmp
 
 #use these cflags to optimize it
-CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
-        -fomit-frame-pointer -fexpensive-optimizations -falign-loops=2 \
-        -falign-jumps=2 -falign-functions=2 -DNDEBUG
+CFLAGS=-O3
 #use these when debugging 
-#CFLAGS=$(BASE_CFLAGS) -g
+#CFLAGS=-g
 
 LDFLAGS=-ldl -lm
 SHLIBEXT=so
