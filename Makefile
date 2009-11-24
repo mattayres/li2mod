@@ -58,10 +58,10 @@ DO_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 	$(DO_CC)
 
 GAME_OBJS = \
-        p_client.o g_cmds.o g_combat.o g_func.o g_items.o \
-        g_main.o g_misc.o g_phys.o g_save.o g_spawn.o \
-        g_target.o g_trigger.o g_turret.o g_utils.o g_weapon.o m_move.o \
-        p_hud.o p_trail.o p_view.o p_weapon.o q_shared.o g_svcmds.o \
+	p_client.o g_cmds.o g_combat.o g_func.o g_items.o \
+	g_main.o g_misc.o g_phys.o g_save.o g_spawn.o \
+	g_target.o g_trigger.o g_turret.o g_utils.o g_weapon.o m_move.o \
+	p_hud.o p_trail.o p_view.o p_weapon.o q_shared.o g_svcmds.o g_chase.o \
 	lithium.o l_display.o l_fragtrak.o l_gslog.o l_hook.o \
 	l_mapqueue.o l_nocamp.o l_obit.o l_pack.o l_rune.o \
 	l_var.o l_menu.o l_admin.o l_vote.o l_net.o net.o \
