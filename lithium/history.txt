@@ -6,9 +6,10 @@ v1.25
 elapsed, 10 years
 added, GPL v3 license
 fixed, minor build issues for modern compilers
-fixed, date formatting for year 2000 and later
 removed, mailing list section from readme.txt
 removed, advertisements for Qoole and Lithium Software
+fixed, date formatting for year 2000 and later
+fixed, nickname format string vulnerability with high scores
 
 v1.24
 ----------------------------------------------------------------------------
