@@ -1,19 +1,26 @@
-/*====================================================
+/*============================================================================
 
-  Lithium II Mod for Quake II.
-  Copyright (c) 1997-1998 Matt Ayres.
-  All rights reserved.
+    This file is part of Lithium II Mod for Quake II
+    Copyright (C) 1997, 1998, 2009 Matthew A. Ayres
 
-  Distribution of this source file, by any means, is
-  hereby forbidden.  You may not use this source file
-  without permission.  Do not remove this notice.
+    Lithium II Mod is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-  Code by Matt "WhiteFang" Ayres, matt@lithium.com
-  Of Lithium Software, http://www.lithium.com
+    Lithium II Mod is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-  Quake II is a trademark of Id Software, Inc.
+    You should have received a copy of the GNU General Public License
+    along with Lithium II Mod.  If not, see <http://www.gnu.org/licenses/>.
 
-====================================================*/
+    Quake II is a trademark of Id Software, Inc.
+
+    Code by Matt "WhiteFang" Ayres, matt@lithium.com
+
+============================================================================*/
 
 #include "g_local.h"
 
