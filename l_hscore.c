@@ -60,7 +60,7 @@ void Highscores_Read(void) {
 				c = strchr(buf, ';');
 				if(c) {
 					*c = 0;
-					strcpy(place->name, buf);
+					sprintf(place->name, "%s", buf);
 					strcpy(place->date, c + 1);
 					c = strchr(place->date, '\r');
 					if(c)
