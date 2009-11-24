@@ -36,9 +36,9 @@ CC=gcc
 BASE_CFLAGS=-Dstricmp=strcasecmp
 
 #use these cflags to optimize it
-CFLAGS=$(BASE_CFLAGS) -m486 -O6 -ffast-math -funroll-loops \
-        -fomit-frame-pointer -fexpensive-optimizations -malign-loops=2 \
-        -malign-jumps=2 -malign-functions=2 -DNDEBUG
+CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
+        -fomit-frame-pointer -fexpensive-optimizations -falign-loops=2 \
+        -falign-jumps=2 -falign-functions=2 -DNDEBUG
 #use these when debugging 
 #CFLAGS=$(BASE_CFLAGS) -g
 

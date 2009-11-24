@@ -4,11 +4,11 @@
 #include "m_player.h"
 
 
-static qboolean	is_quad;
-static byte		is_silenced;
+qboolean	is_quad;
+byte		is_silenced;
 
 //WF	
-static int rotation_adjust;
+int rotation_adjust;
 //WF
 
 void weapon_grenade_fire (edict_t *ent, qboolean held);
