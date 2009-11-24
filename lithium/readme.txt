@@ -1,10 +1,10 @@
 
                 =======================================
-                   Lithium II Mod v1.24 for Quake II
+                   Lithium II Mod v1.25 for Quake II
                 =======================================
 
-By Matt Ayres (WhiteFang) - matt@lithium.com
-Available at http://www.planetquake.com/lithium
+By Matt "WhiteFang" Ayres, matt@lithium.com
+Available at http://quake2.lithium.com
 
 Lithium II is a very configurable server side deathmatch modification
 for Quake II v3.20.  Clients do not need to download anything for DM
@@ -34,7 +34,7 @@ Main Features
      weapons clients will start with.
    * Server configuration and toggles implemented as cvars.  This allows
      .cfg files for startup and instant changes on the server console.
-   * Based on v3.14 game source, and compiled for Windows x86, Linux x86,
+   * Based on v3.20 game source, and compiled for Windows x86, Linux x86,
      Linux AXP, Solaris x86, and Solaris Sparc.
    * VWep support, see which weapon your enemy is using!  (requires a pak).
    * GSLog frag logging (Gibstats Log Standard).
@@ -179,16 +179,3 @@ Feedback
 I appreciate feedback, bug reports, new ideas, and comments (good or bad).
 Send them to matt@lithium.com.  Please understand you may not receive a
 reply, however do know that it will be read.
-
-
-Mailing lists
-----------------------------------------------------------------------------
-I'm running a Lithium Quake II Mod mailing list for discussion about this
-mod and Quake II mods in general.  You can opt for daily digests of the
-mail list now.  Also an announce list is available, for those of you only
-interested in hearing about updates.  To subscribe, send an email with
-"subscribe" in the message (not the subject), to the appropiate address:
-
-   q2-request@lithium.com
-   q2-digest-request@lithium.com
-   q2-announce-request@lithium.com

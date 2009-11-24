@@ -1,6 +1,13 @@
 
 Lithium II Mod release history.  I miss some things some times.  -WhiteFang
 
+v1.25
+----------------------------------------------------------------------------
+elapsed, 10 years
+added, GPL v3 license
+removed, mailing list section from readme.txt
+removed, advertisements for Qoole and Lithium Software
+
 v1.24
 ----------------------------------------------------------------------------
 ported, based on Quake II v3.20 game source now

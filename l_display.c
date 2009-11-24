@@ -309,8 +309,8 @@ char *GetMOTD(void) {
 
 	sprintf(add,
 		"yb %d string2 \"Lithium II Mod v%s\" "
-		"yb %d string \"By Matt Ayres (WhiteFang)\" "
-		"yb %d string \"http://www.lithium.com\" "
+		"yb %d string \"By Matt 'WhiteFang' Ayres\" "
+		"yb %d string \"http://quake2.lithium.com\" "
 		, pos, lithium_version, pos + 8, pos + 16);
 
 	strcat(motdstr, add);
@@ -483,8 +483,8 @@ int Layout_Update(edict_t *ent) {
 }
 
 char ad[5][64] = { 
-	"Get Qoole at www.qoole.com",
-	"Quake II level editing made simple",
+	"",
+	"",
 	"",
 	"",
 	""

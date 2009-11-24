@@ -24,7 +24,7 @@
 
 #include "g_local.h"
 
-float lithium_ver = 1.24;
+float lithium_ver = 1.25;
 int lithium_beta = 0;
 
 char lithium_version[16];
@@ -2368,9 +2368,6 @@ void Lithium_About(edict_t *ent) {
 	Menu_AddLine(ent, MENU_TEXT, 8, "  WhiteFang", "l");
 	Menu_AddLine(ent, MENU_TEXT, 10, "Email", "lc");
 	Menu_AddLine(ent, MENU_TEXT, 11, "  matt@lithium.com", "l");
-	Menu_AddLine(ent, MENU_TEXT, 13, "Company", "lc");
-	Menu_AddLine(ent, MENU_TEXT, 14, "  Lithium Software", "l");
-	Menu_AddLine(ent, MENU_TEXT, 15, "  www.lithium.com", "l");
 
 	Menu_AddLine(ent, MENU_TEXT, 18, "Press Backspace to go back", "m");
 	Menu_CancelFunc(ent, Lithium_Info);
@@ -2385,9 +2382,6 @@ void Lithium_Info(edict_t *ent) {
 	Menu_AddLine(ent, MENU_FUNC, 0, "Commands to bind", Lithium_Commands2);
 	Menu_AddLine(ent, MENU_FUNC, 0, "About the runes", Lithium_AboutRunes);
 	Menu_AddLine(ent, MENU_FUNC, 0, "Using the chasecam", Lithium_AboutChasecam);
-
-	Menu_AddLine(ent, MENU_TEXT, 12, "Edit Quake II maps with", "m");
-	Menu_AddLine(ent, MENU_TEXT, 13, "Qoole - www.qoole.com", "mc");
 
 	Menu_AddLine(ent, MENU_TEXT, 16, "Use [ and ] keys to pick", "m");
 	Menu_AddLine(ent, MENU_TEXT, 17, "Press Enter to select", "m");
