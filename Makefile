@@ -67,7 +67,7 @@ GAME_OBJS = \
 	l_var.o l_menu.o l_admin.o l_vote.o l_net.o net.o \
 	g_ctf.o l_hscore.o zbotcheck.o
 
-game$(ARCH).$(SHLIBEXT): $(GAME_OBJS) 
+lithium/game$(ARCH).$(SHLIBEXT): $(GAME_OBJS) 
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(GAME_OBJS)
 
 
