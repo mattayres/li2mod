@@ -47,7 +47,7 @@ void GSLog(char *format, ...) {
 	strcat(buf, "\r\n");
 #endif
 
-	fprintf(gslog_file, buf);
+	fprintf(gslog_file, "%s", buf);
 
 	if(gslog_flush->value)
 		fflush(gslog_file);

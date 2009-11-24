@@ -22,6 +22,8 @@
 
 ============================================================================*/
 
+#include <stdlib.h>
+#include <string.h>
 #include "net.h"
 
 #define MAX_LISTEN 512
