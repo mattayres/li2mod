@@ -207,7 +207,6 @@ void Lithium_ClientBeginFrame(edict_t *ent);
 void Lithium_ClientEndFrame(edict_t *ent);
 void Lithium_ExitLevel(void);
 void Lithium_DoUpgrade(void);
-void Lithium_Upgrade(edict_t *ent);
 void Lithium_PlayerDie(edict_t *attacker, edict_t *self);
 qboolean Lithium_Observer(edict_t *ent, qboolean check);
 void Lithium_Playing(edict_t *ent);
@@ -364,8 +363,6 @@ void Team_Cmd(edict_t *ent, char *str);
 
 // other
 void Observer_Cmd(edict_t *ent, char *cmd);
-void Verify_ClientThink(edict_t *ent);
-void Verify_Password(edict_t *ent);
 void Armor_Realize(gitem_armor_t *armor_info, char *string);
 void StatusBar_UpdateAll(void);
 int StatusBar_Update(edict_t *ent);

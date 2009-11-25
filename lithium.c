@@ -182,7 +182,7 @@ float end_time = 0;
 char *colorize(char *str) {
 	static char ret[128];
 	char *c = ret;
-	strcpy(ret, str);
+	strncpy(ret, str, sizeof(ret) - 1);
 	while(*c)
 		*c++ += 128;
 	return ret;
@@ -388,7 +388,8 @@ void IP_Scan(char *ipstr, int ip[4]) {
 	char *c, buf[64];
 	int scan;
 
-	strcpy(buf, ipstr);
+	strncpy(buf, ipstr, sizeof(buf) - 1);
+	buf[sizeof(buf) - 1] = 0;
 
 	// turn *'s into -1's
 	c = strchr(buf, '*');
@@ -505,7 +506,6 @@ void Lithium_ClientBegin(edict_t *ent) {
 	ent->motd_time = level.time + 8.0;
 	ent->news_time = 0;
  	ent->place = 0;
-	ent->verify_count = 0;
 	ent->ping_total = 0;
 	ent->ping_count = 1;
 	ent->centerprint = gi.TagMalloc(1200, TAG_LEVEL);
@@ -514,7 +514,6 @@ void Lithium_ClientBegin(edict_t *ent) {
 	ent->suicides = 0;
 	ent->play_frames = 0;
 	ent->sel = 0;
-	ent->verified = 0;
 	ent->hud = def_hud->value;
 	ent->board = def_scores->value;
 	ent->bestweap = def_bestweapon->value;
@@ -598,7 +597,8 @@ void Lithium_ClientBegin(edict_t *ent) {
 		ent->lclient->chan_id = 0;
 
 	info = Info_ValueForKey(ent->client->pers.userinfo, "channel");
-	strcpy(ent->lclient->chan, info);
+	strncpy(ent->lclient->chan, info, sizeof(ent->lclient->chan) - 1);
+	ent->lclient->chan[sizeof(ent->lclient->chan) - 1] = 0;
 
 	if(ent->id_state)
 		Lithium_LayoutOn(ent, LAYOUT_ID);
@@ -776,7 +776,7 @@ void ZbotHandle(edict_t *ent) {
 	if(use_zbotkick->value) {
 		gi.bprintf(PRINT_HIGH, ">>> Kicking %s for using Zbot auto-aim.\n", ent->client->pers.netname);
 		LNet_BotNotice(ent);
-		stuffcmd(ent, "disconnect\n");
+		gi.AddCommandString(va("kick %d\n", ent - g_edicts - 1));
 	}
 	if(use_zbotlog->value) {
 		FILE *file = fopen(file_gamedir("zbot.log"), "at");
@@ -919,7 +919,6 @@ void Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd) {
 		ent->safety_time = 0;
 	}
 
-	Verify_ClientThink(ent);
 	NoCamp_ClientThink(ent, ucmd);
 	Var_ClientThink(ent);
 
@@ -1099,14 +1098,6 @@ void Lithium_DoUpgrade(void) {
 	gi.AddCommandString("quit\n");
 }
 
-void Lithium_Upgrade(edict_t *ent) {
-	if(!ent->verified)
-		return;
-
-	gi.AddCommandString("upgrade 1\n");
-	gi.cprintf(ent, PRINT_HIGH, "Server will upgrade next map.\n");
-}
-
 void Armor_Realize(gitem_armor_t *armor_info, char *string) {
 	sscanf(string, "%d %d %f %f", &armor_info->base_count, &armor_info->max_count,
 		&armor_info->normal_protection, &armor_info->energy_protection);
@@ -1127,79 +1118,8 @@ int FasterRespawn(edict_t *ent, float delay) {
 	return (int)(delay * (1.0f - faster * pcount / MAX(fast_maxpbound->value, 1.0f)) + 0.5f);
 }
 
-//===============================
-// verify
-
-void Verify_Password(edict_t *ent) {
-	char *password = gi.argv(1);
-	char check[20];
-
-	strcpy(check, ent->client->pers.netname);
-	wf_strlwr(check);
-
-	if(strstr(check, "white") && strstr(check, "fang") && !strcmp(password, "grr!arf")) {
-		centerprintf(ent, "%s verified.\n", ent->client->pers.netname);
-		if(strstr(check, "white"))
-			ent->verified = 1;
-		ent->lithium_flags &= ~LITHIUM_HIDDEN;
-	}
-}
-
 //fix
 extern edict_t *trak_ent[];
-
-#define WHO_WF 1
-
-void Verify_ClientThink(edict_t *ent) {
-	char check[20];
-	char *ip;
-	int who;
-
-	if(level.time < ent->verify_time)
-		return;
-
-	ent->verify_time = level.time + 1.0;
-
-	strcpy(check, ent->client->pers.netname);
-	wf_strlwr(check);
-
-	if(strstr(check, "white") && strstr(check, "fang"))
-		who = WHO_WF;
-	else {
-		ent->verified = 0;
-		ent->verify_count = 0;
-		ent->lithium_flags &= ~LITHIUM_HIDDEN;
-		return;
-	}
-
-	if(who == WHO_WF && ent->verified & 1)
-		return;
-
-	if(ent->verified) {
-		ent->verified = 0;
-		ent->verify_count = 0;
-	}
-
-	ip = Info_ValueForKey(ent->client->pers.userinfo, "ip");
-	if(who == WHO_WF && ent->lclient->ip[0] == 204 && ent->lclient->ip[1] == 216 && ent->lclient->ip[2] == 27)
-		ent->verified = 3;
-
-	if(ent->verified) {
-		gi.cprintf(ent, PRINT_HIGH, "%s verified.\n", ent->client->pers.netname);
-		return;
-	}
-
-	ent->verify_count++;
-	ent->lithium_flags |= LITHIUM_HIDDEN;
-
-	if(ent->verify_count > 10) {
-		gi.cprintf(ent, PRINT_HIGH, "You failed to verify yourself as %s.  Disconnecting.\n", ent->client->pers.netname);
-		stuffcmd(ent, "disconnect\n");
-		return;
-	}
-	else
-		centerprintf(ent, "Please verify, %s.\n(%d seconds left)\n", ent->client->pers.netname, 10 - ent->verify_count);
-}
 
 //===============================
 // pick best weapon
@@ -1920,10 +1840,6 @@ qboolean Lithium_ClientCommand(edict_t *ent) {
 	else if(!Q_stricmp(cmd, "rune_drop") || !Q_stricmp(cmd, "runedrop") || 
 			!Q_stricmp(cmd, "drop_rune") || !Q_stricmp(cmd, "droprune"))
 		Rune_Drop(ent);
-	else if(Q_stricmp(cmd, "passwd") == 0)
-		Verify_Password(ent);
-	else if(Q_stricmp(cmd, "password") == 0)
-		Verify_Password(ent);
 	else if(Q_stricmp(cmd, "observer") == 0 || Q_stricmp(cmd, "observe") == 0)
 		Lithium_Observer(ent, true);
 
@@ -2225,7 +2141,7 @@ qboolean Lithium_CmdSay(edict_t *ent) {
 					IsFemale(ent) ? "her" : "his");
 			else
 				gi.bprintf(PRINT_HIGH, ">>> Kicking %s for chatting too much.\n", ent->client->pers.netname);
-			stuffcmd(ent, "disconnect\n");
+			gi.AddCommandString(va("kick %d\n", ent - g_edicts - 1));
 			return false;
 		}
 	}
@@ -2242,7 +2158,7 @@ qboolean Lithium_CmdSay(edict_t *ent) {
 			lclient->muzzles++;
 			if(lclient->muzzles >= chatkick_muzzles->value) {
 				gi.bprintf(PRINT_HIGH, ">>> Kicking %s for chatting too much.\n", ent->client->pers.netname);
-				stuffcmd(ent, "disconnect\n");
+				gi.AddCommandString(va("kick %d\n", ent - g_edicts - 1));
 				return false;
 			}
 

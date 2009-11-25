@@ -743,7 +743,7 @@ void Cmd_Kill_f (edict_t *ent)
 	ent->suicides++;
 	if(use_suicidekick->value && ent->suicides > 3) {
 		gi.bprintf(PRINT_HIGH, ">>> Kicking %s for too many suicides.\n", ent->client->pers.netname);
-		stuffcmd(ent, "disconnect\n");
+		gi.AddCommandString(va("kick %d\n", ent - g_edicts - 1));
 	}
 	//WF
 }

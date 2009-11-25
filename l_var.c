@@ -484,7 +484,7 @@ void Var_ClientThink(edict_t *ent) {
 	if(pingavg < ping_min->value || (ping_max->value && pingavg > ping_max->value)) {
 		gi.cprintf(ent, PRINT_HIGH, "\nServer requires your average ping be between %d and %d.  "
 			"Yours is %d.  Sorry, disconnecting you.\n\n", (int)ping_min->value, (int)ping_max->value, pingavg);
-		stuffcmd(ent, "disconnect\n");
+		gi.AddCommandString(va("kick %d\n", ent - g_edicts - 1));
 		ent->client->disconnecting = true;
 	}
 }

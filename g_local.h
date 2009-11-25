@@ -1191,9 +1191,6 @@ struct edict_s
 	int safety_warns;
 	int suicides;
 	int team_num;
-	float verify_time;
-	int verify_count;
-	int verified;
 	qboolean bestweap;
 	int hud;
 	int layout;
