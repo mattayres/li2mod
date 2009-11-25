@@ -1,17 +1,22 @@
 
 Lithium II Mod release history.  I miss some things some times.  -WhiteFang
 
-v1.25
+v1.30 - Nov 2009
 ----------------------------------------------------------------------------
 elapsed, 10 years
 added, GPL v3 license
-fixed, minor build issues for modern compilers
+fixed, minor build issues for modern compilers (using GCC v4 now)
 removed, mailing list section from readme.txt
 removed, advertisements for Qoole and Lithium Software
 fixed, date formatting for year 2000 and later
 fixed, nickname format string vulnerability with high scores
+fixed, various buffer overflow vulnerabilities (from r1ch)
+fixed, use server kick instead of client disconnect for kicking (from r1ch)
+fixed, invisible player bug (from r1ch)
+removed, admin back door (from r1ch)
+thanks, to r1ch@r1ch.net for the 1.25-R1 build (Feb 2007) with his fixes
 
-v1.24
+v1.24 - Apr 1999
 ----------------------------------------------------------------------------
 ported, based on Quake II v3.20 game source now
 fixed, bug that allowed a client to crash a server with the right string
