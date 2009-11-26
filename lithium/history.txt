@@ -9,6 +9,7 @@ fixed, minor build issues for modern compilers (using GCC v4 now)
 removed, mailing list section from readme.txt
 removed, advertisements for Qoole and Lithium Software
 fixed, date formatting for year 2000 and later
+fixed, crash when loading high scores
 fixed, nickname format string vulnerability with high scores
 fixed, various buffer overflow vulnerabilities (from r1ch)
 fixed, use server kick instead of client disconnect for kicking (from r1ch)

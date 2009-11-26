@@ -44,32 +44,15 @@ void Highscores_Read(void) {
 	char *c, buf[64];
 	FILE *file = fopen(Highscores_File(), "rt");
 
-	place_t *place = NULL, *prev = NULL;
+	first_place = NULL;
 
 	if(file) {
 		while(fgets(buf, 64, file)) {
-			c = strchr(buf, ';');
-			if(c) {
-				place = (place_t *)gi.TagMalloc(sizeof(place_t), TAG_LEVEL);
-				if(p == 0)
-					first_place = place;
-	
-				*c = 0;
-				sscanf(buf, "%d", &place->score);
-				strcpy(buf, c + 1);
-				c = strchr(buf, ';');
-				if(c) {
-					*c = 0;
-					sprintf(place->name, "%s", buf);
-					strcpy(place->date, c + 1);
-					c = strchr(place->date, '\r');
-					if(c)
-						*c = 0;
-					c = strchr(place->date, '\n');
-					if(c)
-						*c = 0;
-				}
-			}
+			place = (place_t *)gi.TagMalloc(sizeof(place_t), TAG_LEVEL);
+			sscanf(buf, "%d;%[^';'];%s\r\n", &place->score, place->name, place->date);
+
+			if(p == 0)
+				first_place = place;
 
 			place->prev = prev;
 			if(prev)
