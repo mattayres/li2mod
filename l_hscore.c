@@ -44,6 +44,9 @@ void Highscores_Read(void) {
 	char *c, buf[64];
 	FILE *file = fopen(Highscores_File(), "rt");
 
+	place_t *place = NULL;
+	place_t *prev = NULL;
+
 	first_place = NULL;
 
 	if(file) {
