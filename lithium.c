@@ -25,7 +25,7 @@
 #include "g_local.h"
 
 float lithium_ver = 1.30;
-int lithium_beta = 3;
+int lithium_beta = 4;
 
 char lithium_version[16];
 char lithium_modname[32];
@@ -61,6 +61,7 @@ lvar_t *safety_time;
 lvar_t *gamedir;
 
 lvar_t *intermission_time;
+lvar_t *intermission_maxtime;
 lvar_t *intermission_sound;
  
 lvar_t *ofp_base;
@@ -142,6 +143,7 @@ void Lithium_InitGame(void) {
 	timestamp = lvar("timestamp", "0", "^", VAR_OTHER);
 
 	intermission_time = lvar("intermission_time", "8.5", "##", VAR_OTHER);
+	intermission_maxtime = lvar("intermission_maxtime", "30", "##", VAR_OTHER);
 	intermission_sound = lvar("intermission_sound", "world/xian1.wav", "wav", VAR_NONE);
 
 	max_rate = lvar("max_rate", "8000", "#####", VAR_OTHER);
@@ -803,6 +805,8 @@ qboolean Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd) {
 	if(level.intermissiontime) {
 		client->ps.pmove.pm_type = PM_FREEZE;
 		if(level.time > level.intermissiontime + intermission_time->value && (ucmd->buttons & BUTTON_ANY))
+			level.exitintermission = true;
+		if(intermission_maxtime->value >= 0 && level.time > level.intermissiontime + intermission_maxtime->value)
 			level.exitintermission = true;
 		return true;
 	}
