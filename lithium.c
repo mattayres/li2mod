@@ -25,7 +25,7 @@
 #include "g_local.h"
 
 float lithium_ver = 1.30;
-int lithium_beta = 2;
+int lithium_beta = 3;
 
 char lithium_version[16];
 char lithium_modname[32];
@@ -688,6 +688,8 @@ qboolean Lithium_Observer(edict_t *ent, qboolean check) {
 	Lithium_LayoutOff(ent, LAYOUT_SCORES);
 
 	ent->place = 0;
+
+	ent->client->chase_target = NULL;
 
 	return true;
 }

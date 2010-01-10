@@ -1,10 +1,10 @@
 
 Lithium II Mod release history.  I miss some things some times.  -WhiteFang
 
-v1.30 - Nov 2009
+v1.30 - Jan 2010
 ----------------------------------------------------------------------------
-elapsed, 10 years
-added, GPL v3 license
+elapsed, over 10 years
+added, GPL v3 license for source code
 fixed, minor build issues for modern compilers (using GCC v4 now)
 removed, mailing list section from readme.txt
 removed, advertisements for Qoole and Lithium Software
@@ -16,6 +16,7 @@ fixed, use server kick instead of client disconnect for kicking (from r1ch)
 fixed, invisible player bug (from r1ch)
 removed, admin back door (from r1ch)
 thanks, to r1ch@r1ch.net for the 1.25-R1 build (Feb 2007) with his fixes
+fixed, going from chasecam to observer mode
 
 v1.24 - Apr 1999
 ----------------------------------------------------------------------------
