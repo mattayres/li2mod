@@ -17,6 +17,7 @@ fixed, invisible player bug (from r1ch)
 removed, admin back door (from r1ch)
 thanks, to r1ch@r1ch.net for the 1.25-R1 build (Feb 2007) with his fixes
 fixed, going from chasecam to observer mode
+changed, only playing clients can vote
 
 v1.24 - Apr 1999
 ----------------------------------------------------------------------------

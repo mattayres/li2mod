@@ -64,6 +64,29 @@ void acprintf(int level, char *format, ...) {
 	}
 }
 
+qboolean Vote_IsPlaying(edict_t *ent) {
+	if(!ent->inuse)
+		return false;
+	if(ent->lithium_flags & LITHIUM_OBSERVER)
+		return false;
+	if(ent->client->chase_target != NULL)
+		return false;
+
+	return true;
+}
+
+int Vote_CountPlaying() {
+	int playing = 0;
+	int i;
+	edict_t *cl_ent;
+	for(i = 0; i < game.maxclients; i++) {
+		cl_ent = g_edicts + 1 + i;
+		if(Vote_IsPlaying(cl_ent))
+			playing++;
+	}
+	return playing;
+}
+
 void Vote_InitGame(void) {
 	use_mapvote = lvar("use_mapvote", "1", "^", VAR_USE);
 	mapvote_list = lvar("mapvote_list", "mapvote.lst", "str", VAR_NONE);
@@ -84,8 +107,8 @@ qboolean Vote_Allow(edict_t *ent) {
 		return false;
 	}
 
-	if(countclients() < mapvote_min->value || countclients() > mapvote_max->value) {
-		gi.cprintf(ent, PRINT_HIGH, "Map voting only allowed when %d to %d clients are connected.\n", (int)mapvote_min->value, (int)mapvote_max->value);
+	if(Vote_CountPlaying() < mapvote_min->value || Vote_CountPlaying() > mapvote_max->value) {
+		gi.cprintf(ent, PRINT_HIGH, "Map voting only allowed when %d to %d clients are playing.\n", (int)mapvote_min->value, (int)mapvote_max->value);
 		return false;
 	}
 
@@ -120,11 +143,11 @@ void Vote_Menu(edict_t *ent) {
 	Menu_AddText(ent, 6, "Map name..... %s", vote_map);
 	Menu_AddText(ent, 7, "When......... %s", vote_instant ? "instant" : "map over");
 	Menu_AddText(ent, 8, "Request by... %s", vote_ent->client->pers.netname);
-	Menu_AddText(ent, 9, "Clients...... %d", countclients());
+	Menu_AddText(ent, 9, "Playing...... %d", Vote_CountPlaying());
 	Menu_AddText(ent, 10, "Need votes... %d%c (%d)", (int)mapvote_need->value, '%', vote_need);
 	Menu_AddText(ent, 11, "Passes with.. %d%c (%d)", (int)mapvote_pass->value, '%', vote_pass);
-	Menu_AddText(ent, 12, "Yes votes.... %d%c (%d)", vote_yes * 100 / MAX(countclients(), 1), '%', vote_yes);
-	Menu_AddText(ent, 13, "No votes..... %d%c (%d)", vote_no * 100 / MAX(countclients(), 1), '%', vote_no);
+	Menu_AddText(ent, 12, "Yes votes.... %d%c (%d)", vote_yes * 100 / MAX(Vote_CountPlaying(), 1), '%', vote_yes);
+	Menu_AddText(ent, 13, "No votes..... %d%c (%d)", vote_no * 100 / MAX(Vote_CountPlaying(), 1), '%', vote_no);
 	Menu_AddText(ent, 14, "Time left.... %d", (int)(mapvote_time->value - level.time + vote_time + 0.5));
 
 	if(ent == vote_ent) {
@@ -155,8 +178,8 @@ void Vote_RunFrame(void) {
 
 	last_time = level.time;
 
-	vote_need = mapvote_need->value * countclients() / 100 - 0.001;
-	vote_pass = mapvote_pass->value * countclients() / 100 - 0.001;
+	vote_need = mapvote_need->value * Vote_CountPlaying() / 100 - 0.001;
+	vote_pass = mapvote_pass->value * Vote_CountPlaying() / 100 - 0.001;
 
 	vote_yes = 0;
 	vote_no = 0;
@@ -166,6 +189,8 @@ void Vote_RunFrame(void) {
 		if(!cl_ent->inuse)
 			continue;
 		if(!cl_ent->lclient)
+			continue;
+		if(!Vote_IsPlaying(cl_ent))
 			continue;
 		if(cl_ent->lclient->vote == 0)
 			vote_no++;
@@ -285,6 +310,11 @@ void Vote_Start(edict_t *ent) {
 }
 
 void Vote_Cmd(edict_t *ent, char *cmd1, char *cmd2) {
+	if(!Vote_IsPlaying(ent)) {
+		gi.cprintf(ent, PRINT_HIGH, "You must be playing to vote.\n");
+		return;
+	}
+
 	if(ent == vote_ent) {
 		if(!Q_stricmp(cmd1, "cancel"))
 			vote_cancel = true;
