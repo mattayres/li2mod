@@ -30,6 +30,7 @@
 lvar_t *mapqueue, *map_random;
 cvar_t *mapqueue_pos;
 lvar_t *use_mapqueue;
+lvar_t *mapqueue_resetonvote;
 
 qboolean resetqueue = false;
 
@@ -44,6 +45,7 @@ void Mapqueue_InitGame(void) {
 	mapqueue = lvar("mapqueue", "maps.lst", 0, VAR_OTHER);
 	mapqueue_pos = gi.cvar("mapqueue_pos", "0", 0);
 	map_random = lvar("map_random", "0", "^", VAR_OTHER);
+	mapqueue_resetonvote = lvar("mapqueue_resetonvote", "0", "^", VAR_OTHER);
 }
 
 void Mapqueue_InitLevel(void) {
@@ -72,7 +74,7 @@ edict_t *Mapqueue_EndDMLevel(void) {
 		map = override_map;
 		override_map = NULL;
 		admin_override = false;
-		resetqueue = true;
+		resetqueue = mapqueue_resetonvote->value;
 	}
 	else {
 		map = Mapqueue_GetMapName();
