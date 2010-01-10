@@ -1734,7 +1734,6 @@ This will be called once for each client frame, which will
 usually be a couple times for each server frame.
 ==============
 */
-extern lvar_t *intermission_time; //WF
 void ClientThink (edict_t *ent, usercmd_t *ucmd)
 {
 	gclient_t	*client;
@@ -1745,22 +1744,20 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	level.current_entity = ent;
 	client = ent->client;
 
+	//WF
+	/*
 	if (level.intermissiontime)
 	{
 		client->ps.pmove.pm_type = PM_FREEZE;
 		// can exit intermission after five seconds
-		//WF
-//		if (level.time > level.intermissiontime + 5.0
-		if (level.time > level.intermissiontime + intermission_time->value
-		//WF
+		if (level.time > level.intermissiontime + 5.0
 			&& (ucmd->buttons & BUTTON_ANY) )
 			level.exitintermission = true;
 		return;
 	}
+	*/
 
-	//WF
-	Lithium_ClientThink(ent, ucmd);
-	if(ent->client->chase_target)
+	if(Lithium_ClientThink(ent, ucmd))
 		return;
 	//WF
 

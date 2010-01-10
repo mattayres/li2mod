@@ -202,7 +202,7 @@ void Lithium_RunFrame(void);
 void Lithium_ClientBegin(edict_t *ent);
 void Lithium_ClientDisconnect(edict_t *ent);
 void Lithium_PutClientInServer(edict_t *ent);
-void Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd);
+qboolean Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd);
 void Lithium_ClientBeginFrame(edict_t *ent);
 void Lithium_ClientEndFrame(edict_t *ent);
 void Lithium_ExitLevel(void);

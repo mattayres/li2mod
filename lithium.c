@@ -797,8 +797,15 @@ void ZbotHandle(edict_t *ent) {
 
 qboolean ZbotCheck(edict_t *ent, usercmd_t *ucmd);
 
-void Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd) {
+qboolean Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd) {
 	gclient_t *client = ent->client;
+
+	if(level.intermissiontime) {
+		client->ps.pmove.pm_type = PM_FREEZE;
+		if(level.time > level.intermissiontime + intermission_time->value && (ucmd->buttons & BUTTON_ANY))
+			level.exitintermission = true;
+		return true;
+	}
 
 	if(!ent->lclient->rate_check) {
 		ent->lclient->rate_check = true;
@@ -901,7 +908,7 @@ void Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd) {
 			}
 		}
 
-		return;
+		return false;
 	}
 
 	if(ent->lithium_flags & LITHIUM_ATTACKWAIT) {
@@ -927,6 +934,11 @@ void Lithium_ClientThink(edict_t *ent, usercmd_t *ucmd) {
 	// Orange 2 Hook
 	if(client->hook_on && ent->client->hook) 
 		Hook_Service(client->hook);
+
+	if(ent->client->chase_target)
+		return true;
+
+	return false;
 }
 
 void Lithium_MaxRate(edict_t *ent) {
