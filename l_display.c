@@ -68,7 +68,7 @@ void Lithium_SetStats(edict_t *self) {
 			stats[i] = 0;
 
 	if(self->hud == HUD_LITHIUM) {
-		if(!level.intermissiontime) {
+		if(!level.intermissiontime && !ctf->value) {
 			// CTF uses 26 and 27 for team header
 			// flashing during intermission
 			stats[26] = (short)ent->fph;
