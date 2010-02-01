@@ -15,13 +15,14 @@ fixed, various buffer overflow vulnerabilities (from r1ch)
 fixed, use server kick instead of client disconnect for kicking (from r1ch)
 fixed, invisible player bug (from r1ch)
 removed, admin back door (from r1ch)
-thanks, to r1ch@r1ch.net for the 1.25-R1 build (Feb 2007) with his fixes
+thanks, to r1ch for the 1.25-R1 build (Feb 2007) with his fixes
 fixed, going from chasecam to observer mode
 changed, only playing clients can vote
 added, intermission_maxtime option to force next map after so much time
 changed, map votes no longer reset map queue order after voted map finishes
 added, mapqueue_resetonvote option to reset map queue after vote
 fixed, client crash in CTF mode after hitting flag capture limit
+thanks, to d3s for facilitating this release!
 
 v1.24 - Apr 1999
 ----------------------------------------------------------------------------

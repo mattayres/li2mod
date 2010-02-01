@@ -132,28 +132,31 @@ nothing they need to download.  Simply connect and play.  That's the
 beauty of server side mods.
 
 Client commands:
-   drop rune    Drop your current rune
-   +scores      Quake 1 style scoreboard
-   +hook        Grappling hook
-   observe      Observer mode
-   chase        Chasecam mode
-   chaseleader  Always chase first place
-   chaselist    List the clients chasing you
-   highscores   List high scores for current map
-   bestweap     Toggle best weapon pickup
-   id           Toggle player identity
-   hud          Toggle Lithium/Ammo HUD
-   menu         Lithium II main menu
-   admin        Admin menu
+   drop rune           Drop your current rune
+   +scores             Quake 1 style scoreboard
+   +hook               Grappling hook
+   observe             Observer mode
+   chase               Chasecam mode
+   chaseleader         Always chase first place
+   chaselist           List the clients chasing you
+   highscores          List high scores for current map
+   bestweap            Toggle best weapon pickup
+   id                  Toggle player identity
+   hud                 Toggle Lithium/Ammo HUD
+   menu                Lithium II main menu
+   admin               Admin menu
+   vote map <mapname>  Start map voting process for <mapname>
 
 It's recommended that you bind keys to "drop rune", +scores, and +hook.
 For example, you'd type something like this on the console (or add to
 your autoexec.cfg in your quake2\lithium directory):
 
-   bind d "drop rune"
+   bind e "drop rune"
    bind tab +scores
    bind q +hook
-
+   bind v +vote
+   bind m +menu
+   bind z +admin
 
 Runes:
    Strength (Red)     You inflict 2x damage
@@ -161,17 +164,6 @@ Runes:
    Haste    (Yellow)  You fire twice as fast
    Regen    (Green)   Your health regenerates slowly
    Vampire  (Purple)  You gain health for damage inflicted
-
-
-Future Features
-----------------------------------------------------------------------------
-No guarantees on anything or the order they'll be added!  I have many
-things planned.  A few of them include:
-
-   * Teamplay options
-   * Eraser bots
-   * Competition modes, with lmaster features
-   * FragTrak, comprehensive and compact frag tracking system
 
 
 Feedback
