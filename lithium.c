@@ -1,7 +1,7 @@
 /*============================================================================
 
     This file is part of Lithium II Mod for Quake II
-    Copyright (C) 1997, 1998, 2009 Matthew A. Ayres
+    Copyright (C) 1997, 1998, 1999, 2010 Matthew A. Ayres
 
     Lithium II Mod is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
