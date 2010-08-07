@@ -26,9 +26,7 @@
 
 extern lvar_t *use_runes;
 
-#define MOTDSTRLEN (1024u)
-#define NEWSSTRLEN (1024u)
-#define CENTERPRINTLEN (1024u)
+#define DISPLAYSTRLEN (1024u)
 
 void CTFSetIDView(edict_t *ent);
 
@@ -261,7 +259,7 @@ char *GetMOTD(void) {
 	char add[256] = "";
 	char* motdstr;
 
-	motdstr = calloc(1, MOTDSTRLEN);
+	motdstr = calloc(1, DISPLAYSTRLEN);
 	if (!motdstr)
 		return NULL;
 
@@ -284,7 +282,7 @@ char *GetMOTD(void) {
 
 	pos = -60 - lines * 8;
 
-	strncpy(motdstr, "xl 8 ", MOTDSTRLEN-1);
+	strncpy(motdstr, "xl 8 ", DISPLAYSTRLEN-1);
 
 	line = 4;
 	if(file) {
@@ -298,9 +296,9 @@ char *GetMOTD(void) {
 //			if(strlen(buf) > 32)
 //				buf[32] = '\0';
 
-			if(strlen(buf) && strlen(motdstr) < (MOTDSTRLEN-128)) {
+			if(strlen(buf)) {
 				sprintf(add, "yb %d string \"%s\" ", pos, buf);
-				strlcat(motdstr, add, MOTDSTRLEN);
+				strlcat(motdstr, add, DISPLAYSTRLEN);
 			}
  
 			pos += 8;
@@ -321,7 +319,7 @@ char *GetMOTD(void) {
 		"yb %d string \"http://quake2.lithium.com\" "
 		, pos, lithium_version, pos + 8, pos + 16);
 
-	strlcat(motdstr, add, MOTDSTRLEN);
+	strlcat(motdstr, add, DISPLAYSTRLEN);
 
 	return motdstr;
 }
@@ -335,7 +333,7 @@ char *GetNews(void) {
 	char add[256];
 	char *newsstr;
 
-	newsstr = calloc(1, NEWSSTRLEN);
+	newsstr = calloc(1, DISPLAYSTRLEN);
 	if (!newsstr)
 		return NULL;
 
@@ -358,7 +356,7 @@ char *GetNews(void) {
 
 	pos = -60 - lines * 8;
 
-	strncpy(newsstr, "xl 8 ", NEWSSTRLEN-1);
+	strncpy(newsstr, "xl 8 ", DISPLAYSTRLEN-1);
 
 	line = 1;
 	while(fgets(buf, 256, file)) {
@@ -369,7 +367,7 @@ char *GetNews(void) {
 
 		if(strlen(buf)) {
 			sprintf(add, "yb %d string \"%s\" ", pos, buf);
-			strlcat(newsstr, add, NEWSSTRLEN);
+			strlcat(newsstr, add, DISPLAYSTRLEN);
 		}
  
 		pos += 8;
@@ -378,7 +376,7 @@ char *GetNews(void) {
 		if(line == lines)
 			break;
 	}
-	strlcat(newsstr, add, NEWSSTRLEN);
+	strlcat(newsstr, add, DISPLAYSTRLEN);
 
 	fclose(file);
 
@@ -388,7 +386,7 @@ char *GetNews(void) {
 char *GetCenterprint(edict_t *ent) {
 	char *centerprint;
 
-	centerprint = calloc(1, CENTERPRINTLEN);
+	centerprint = calloc(1, DISPLAYSTRLEN);
 	if (!centerprint)
 		return NULL;
 
@@ -416,10 +414,10 @@ char *GetCenterprint(edict_t *ent) {
 			c = d + 1;
 		}
 
-		strlcat(centerprint, "xv 0 ", CENTERPRINTLEN);
+		strlcat(centerprint, "xv 0 ", DISPLAYSTRLEN);
 		for(i = 0; i < lines; i++) {
 			if(strlen(line[i]))
-				snprintf(centerprint + strlen(centerprint), CENTERPRINTLEN-strlen(centerprint), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
+				snprintf(centerprint + strlen(centerprint), DISPLAYSTRLEN-strlen(centerprint), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
 		}
 	}
 
@@ -427,7 +425,7 @@ char *GetCenterprint(edict_t *ent) {
 }
 
 int Layout_Update(edict_t *ent) {
-	char string[1024] = "";
+	char string[DISPLAYSTRLEN] = "";
 	char* c;
 	int size;
 
@@ -469,7 +467,7 @@ int Layout_Update(edict_t *ent) {
 	if(ent->layout & LAYOUT_CENTERPRINT) {
 		c = GetCenterprint(ent);
 		if (c) {
-			strlcat(string, c, 1024);
+			strlcat(string, c, DISPLAYSTRLEN);
 			free(c);
 		}
 	}
@@ -477,29 +475,29 @@ int Layout_Update(edict_t *ent) {
 	if((level.time > ent->motd_time || !(ent->layout & LAYOUT_MOTD)) && ent->layout & LAYOUT_NEWS && isnews) {
 		c = GetNews();
 		if (c) {
-			strlcat(string, c, 1024);
+			strlcat(string, c, DISPLAYSTRLEN);
 			free(c);
 		}
 	} else if(ent->layout & LAYOUT_MOTD) {
 		c = GetMOTD();
 		if (c) {
-			strlcat(string, c, 1024);
+			strlcat(string, c, DISPLAYSTRLEN);
 			free(c);
 		}
 	} else {
 		if(ent->layout & LAYOUT_CHASECAM && ent->client->chase_target)
-			snprintf(string + strlen(string), 1024 - strlen(string), "xv 2 yb -68 string2 \"Chasing %s\" ", ent->client->chase_target->client->pers.netname);
+			snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), "xv 2 yb -68 string2 \"Chasing %s\" ", ent->client->chase_target->client->pers.netname);
 
 		if(ent->layout & LAYOUT_ID) {
 			if(ent->id_ent) {
 				if(ctf->value)
-					snprintf(string + strlen(string), 1024 - strlen(string), "xv 2 yb -60 string2 \"Viewing %s (%s)\" ", 
+					snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), "xv 2 yb -60 string2 \"Viewing %s (%s)\" ", 
 						ent->id_ent->client->pers.netname, Info_ValueForKey(ent->id_ent->client->pers.userinfo, "skin"));
 				else
-					snprintf(string + strlen(string), 1024 - strlen(string), "xv 2 yb -60 string2 \"Viewing %s\" ", ent->id_ent->client->pers.netname);
+					snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), "xv 2 yb -60 string2 \"Viewing %s\" ", ent->id_ent->client->pers.netname);
 			}
 			else
-				snprintf(string + strlen(string), 1024 - strlen(string), " ");
+				snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), " ");
 		}
 	}
 
