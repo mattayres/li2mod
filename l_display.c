@@ -27,7 +27,6 @@
 extern lvar_t *use_runes;
 
 #define MOTDSTRLEN (1024u)
-static char motdstr[MOTDSTRLEN];
 #define NEWSSTRLEN (1024u)
 static char newsstr[NEWSSTRLEN];
 #define CENTERPRINTLEN (1024u)
@@ -262,6 +261,11 @@ char *GetMOTD(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256] = "";
+	char* motdstr;
+
+	motdstr = calloc(1, MOTDSTRLEN);
+	if (!motdstr)
+		return NULL;
 
 	file = fopen(file_gamedir(motd->string), "rt");
 	lines = 0;
@@ -282,8 +286,7 @@ char *GetMOTD(void) {
 
 	pos = -60 - lines * 8;
 
-	strncpy(motdstr, "xl 8 ", MOTDSTRLEN);
-	motdstr[MOTDSTRLEN-1] = '\0';
+	strncpy(motdstr, "xl 8 ", MOTDSTRLEN-1);
 
 	line = 4;
 	if(file) {
@@ -420,6 +423,7 @@ char *GetCenterprint(edict_t *ent) {
 
 int Layout_Update(edict_t *ent) {
 	char string[1024] = "";
+	char* c;
 	int size;
 
 	if(level.intermissiontime) {
@@ -462,9 +466,13 @@ int Layout_Update(edict_t *ent) {
 
 	if((level.time > ent->motd_time || !(ent->layout & LAYOUT_MOTD)) && ent->layout & LAYOUT_NEWS && isnews)
 		strcat(string, GetNews());
-	else if(ent->layout & LAYOUT_MOTD)
-		strcat(string, GetMOTD());
-	else {
+	else if(ent->layout & LAYOUT_MOTD) {
+		c = GetMOTD();
+		if (c) {
+			strlcat(string, c, 1024);
+			free(c);
+		}
+	} else {
 		if(ent->layout & LAYOUT_CHASECAM && ent->client->chase_target)
 			sprintf(string + strlen(string), "xv 2 yb -68 string2 \"Chasing %s\" ", ent->client->chase_target->client->pers.netname);
 
