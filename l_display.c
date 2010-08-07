@@ -23,6 +23,7 @@
 ============================================================================*/
 
 #include "g_local.h"
+#include "tools.h"
 #define MOTDSTRLEN (1024u)
 
 extern lvar_t *use_runes;
@@ -293,7 +294,7 @@ char *GetMOTD(void) {
 
 			if(strlen(buf) && strlen(motdstr) < (MOTDSTRLEN-128)) {
 				sprintf(add, "yb %d string \"%s\" ", pos, buf);
-				strncat(motdstr, add, MOTDSTRLEN);
+				xstrncat(motdstr, add, MOTDSTRLEN);
 			}
  
 			pos += 8;
@@ -314,8 +315,7 @@ char *GetMOTD(void) {
 		"yb %d string \"http://quake2.lithium.com\" "
 		, pos, lithium_version, pos + 8, pos + 16);
 
-	strncat(motdstr, add, MOTDSTRLEN);
-	motdstr[MOTDSTRLEN-1] = '\0';
+	xstrncat(motdstr, add, MOTDSTRLEN);
 
 	return motdstr;
 }
