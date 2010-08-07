@@ -23,7 +23,7 @@
 ============================================================================*/
 
 #include "g_local.h"
-#define MOTDSTRLEN (u1024)
+#define MOTDSTRLEN (1024u)
 
 extern lvar_t *use_runes;
 static char motdstr[MOTDSTRLEN];
