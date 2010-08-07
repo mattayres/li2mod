@@ -29,7 +29,6 @@ extern lvar_t *use_runes;
 #define MOTDSTRLEN (1024u)
 #define NEWSSTRLEN (1024u)
 #define CENTERPRINTLEN (1024u)
-static char centerprint[CENTERPRINTLEN];
 
 void CTFSetIDView(edict_t *ent);
 
@@ -387,8 +386,11 @@ char *GetNews(void) {
 }
 
 char *GetCenterprint(edict_t *ent) {
+	char *centerprint;
 
-	strncpy(centerprint, "", CENTERPRINTLEN);
+	centerprint = calloc(1, CENTERPRINTLEN);
+	if (!centerprint)
+		return NULL;
 
 	if(ent->centerprint && ent->centerprint2 && strlen(ent->centerprint2))
 		strncpy(ent->centerprint, ent->centerprint2, 1200);
@@ -464,8 +466,13 @@ int Layout_Update(edict_t *ent) {
 		return size;
 	}
 	
-	if(ent->layout & LAYOUT_CENTERPRINT)
-		strcat(string, GetCenterprint(ent));
+	if(ent->layout & LAYOUT_CENTERPRINT) {
+		c = GetCenterprint(ent);
+		if (c) {
+			strlcat(string, c, 1024);
+			free(c);
+		}
+	}
 
 	if((level.time > ent->motd_time || !(ent->layout & LAYOUT_MOTD)) && ent->layout & LAYOUT_NEWS && isnews) {
 		c = GetNews();
