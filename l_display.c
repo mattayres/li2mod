@@ -529,7 +529,7 @@ char *Lithium_GetAd(int down) {
 }
 
 void Lithium_SetAd(int num, char *str) {
-	strcpy(ad[num], str);
+	strncpy(ad[num], str, 64-1);
 }
 
 int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
