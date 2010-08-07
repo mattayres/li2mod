@@ -28,7 +28,6 @@ extern lvar_t *use_runes;
 
 #define MOTDSTRLEN (1024u)
 #define NEWSSTRLEN (1024u)
-static char newsstr[NEWSSTRLEN];
 #define CENTERPRINTLEN (1024u)
 static char centerprint[CENTERPRINTLEN];
 
@@ -335,6 +334,11 @@ char *GetNews(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256];
+	char *newsstr;
+
+	newsstr = calloc(1, NEWSSTRLEN);
+	if (!newsstr)
+		return NULL;
 
 	file = fopen(file_gamedir(news->string), "rt");
 
@@ -355,8 +359,7 @@ char *GetNews(void) {
 
 	pos = -60 - lines * 8;
 
-	strncpy(newsstr, "xl 8 ", NEWSSTRLEN);
-	newsstr[NEWSSTRLEN-1] = '\0';
+	strncpy(newsstr, "xl 8 ", NEWSSTRLEN-1);
 
 	line = 1;
 	while(fgets(buf, 256, file)) {
@@ -464,9 +467,13 @@ int Layout_Update(edict_t *ent) {
 	if(ent->layout & LAYOUT_CENTERPRINT)
 		strcat(string, GetCenterprint(ent));
 
-	if((level.time > ent->motd_time || !(ent->layout & LAYOUT_MOTD)) && ent->layout & LAYOUT_NEWS && isnews)
-		strcat(string, GetNews());
-	else if(ent->layout & LAYOUT_MOTD) {
+	if((level.time > ent->motd_time || !(ent->layout & LAYOUT_MOTD)) && ent->layout & LAYOUT_NEWS && isnews) {
+		c = GetNews();
+		if (c) {
+			strlcat(string, c, 1024);
+			free(c);
+		}
+	} else if(ent->layout & LAYOUT_MOTD) {
 		c = GetMOTD();
 		if (c) {
 			strlcat(string, c, 1024);
