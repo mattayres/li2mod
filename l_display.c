@@ -24,10 +24,13 @@
 
 #include "g_local.h"
 #include "tools.h"
-#define MOTDSTRLEN (1024u)
 
 extern lvar_t *use_runes;
+
+#define MOTDSTRLEN (1024u)
 static char motdstr[MOTDSTRLEN];
+#define NEWSSTRLEN (1024u)
+static char newsstr[NEWSSTRLEN];
 
 void CTFSetIDView(edict_t *ent);
 
@@ -279,6 +282,7 @@ char *GetMOTD(void) {
 	pos = -60 - lines * 8;
 
 	strncpy(motdstr, "xl 8 ", MOTDSTRLEN);
+	motdstr[MOTDSTRLEN-1] = '\0';
 
 	line = 4;
 	if(file) {
@@ -327,7 +331,6 @@ char *GetNews(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256];
-	static char newsstr[1024];
 
 	file = fopen(file_gamedir(news->string), "rt");
 
@@ -348,7 +351,8 @@ char *GetNews(void) {
 
 	pos = -60 - lines * 8;
 
-	strcpy(newsstr, "xl 8 ");
+	strncpy(newsstr, "xl 8 ", NEWSSTRLEN);
+	newsstr[NEWSSTRLEN-1] = '\0';
 
 	line = 1;
 	while(fgets(buf, 256, file)) {
@@ -357,9 +361,9 @@ char *GetNews(void) {
 		c = strchr(buf, 0x0D);
 		if(c) *c = 0;
 
-		if(strlen(buf) && strlen(newsstr) < 640) {
+		if(strlen(buf)) {
 			sprintf(add, "yb %d string \"%s\" ", pos, buf);
-			strcat(newsstr, add);
+			xstrncat(newsstr, add, NEWSSTRLEN);
 		}
  
 		pos += 8;
@@ -368,7 +372,7 @@ char *GetNews(void) {
 		if(line == lines)
 			break;
 	}
-	strcat(newsstr, add);
+	xstrncat(newsstr, add, NEWSSTRLEN);
 
 	fclose(file);
 
