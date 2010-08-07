@@ -518,11 +518,13 @@ char ad[5][64] = {
 
 char *Lithium_GetAd(int down) {
 	int i;
-	static char thead[320];
-	strcpy(thead, "");
+	char *thead;
+
+	thead = calloc(1, 320);
+
 	for(i = 0; i < 5; i++)
 		if(strlen(ad[i]))
-			strcat(thead, va("xv 0 yv %d cstring \"%s\" ", down + i * 8, ad[i]));
+			strlcat(thead, va("xv 0 yv %d cstring \"%s\" ", down + i * 8, ad[i]), 320);
 	return thead;
 }
 
@@ -539,6 +541,7 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 	edict_t		*cl_ent;
 	qboolean highlight;
 	int down;
+	char *c;
 
 //ZOID
 	if (ctf->value) {
@@ -604,7 +607,11 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 	}
 
 	if(level.intermissiontime) {
-		strcat(string, Lithium_GetAd(down + ent->lclient->board_show * 10 + 32));
+		c = Lithium_GetAd(down + ent->lclient->board_show * 10 + 32);
+		if (c) {
+			strlcat(string, c, 1400);
+			free(c);
+		}
 	}
 	else {
 		if(countclients() > ent->lclient->board_show)

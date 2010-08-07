@@ -1516,6 +1516,7 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 	edict_t		*cl_ent;
 	int team;
 	int maxsize = 920;
+	char *c;
 
 	// sort the clients by team and score
 	total[0] = total[1] = 0;
@@ -1713,9 +1714,13 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 		sprintf(string + strlen(string), "xv 168 yv %d string \"..and %d more\" ",
 			42 + (last[1]+1)*8, total[1] - last[1] - 1);
 
-	if(level.intermissiontime)
-		strcat(string, Lithium_GetAd(j + 24));
-	else
+	if(level.intermissiontime) {
+		c = Lithium_GetAd(j + 24);
+		if (c) {
+			strlcat(string, c, 1400);
+			free(c);
+		}
+	} else
 		strcat(string, va("xv 0 yv %d cstring \"Press 0 for Lithium II menu\" ", j + 24));
 
 	gi.WriteByte (svc_layout);
