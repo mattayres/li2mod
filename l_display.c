@@ -31,6 +31,8 @@ extern lvar_t *use_runes;
 static char motdstr[MOTDSTRLEN];
 #define NEWSSTRLEN (1024u)
 static char newsstr[NEWSSTRLEN];
+#define CENTERPRINTLEN (1024u)
+static char centerprint[CENTERPRINTLEN];
 
 void CTFSetIDView(edict_t *ent);
 
@@ -380,12 +382,11 @@ char *GetNews(void) {
 }
 
 char *GetCenterprint(edict_t *ent) {
-	static char centerprint[1024];
 
-	strcpy(centerprint, "");
+	strncpy(centerprint, "", CENTERPRINTLEN);
 
 	if(ent->centerprint && ent->centerprint2 && strlen(ent->centerprint2))
-		strcpy(ent->centerprint, ent->centerprint2);
+		strncpy(ent->centerprint, ent->centerprint2, 1200);
 
 	if(ent->centerprint && strlen(ent->centerprint)) {
 		int i, len, lines = 0;
@@ -408,10 +409,10 @@ char *GetCenterprint(edict_t *ent) {
 			c = d + 1;
 		}
 
-		strcat(centerprint, "xv 0 ");
+		xstrncat(centerprint, "xv 0 ", CENTERPRINTLEN);
 		for(i = 0; i < lines; i++) {
 			if(strlen(line[i]))
-				sprintf(centerprint + strlen(centerprint), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
+				snprintf(centerprint + strlen(centerprint), CENTERPRINTLEN-strlen(centerprint), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
 		}
 	}
 
