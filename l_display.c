@@ -216,7 +216,7 @@ int StatusBar_Update(edict_t *ent) {
 	if(ent->hud > HUD_NONE)
 		strcat(statusbar, bottombar);
 
-	if(ent->hud == HUD_NORMAL || ent->hud == HUD_AMMO && !ctf->value)
+	if(ent->hud == HUD_NORMAL || (ent->hud == HUD_AMMO && !ctf->value))
 		strcat(statusbar, "yt 0 xr -50 num 3 25 ");
 
 	if(ent->hud == HUD_AMMO && !ctf->value)
