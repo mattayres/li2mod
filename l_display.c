@@ -488,18 +488,18 @@ int Layout_Update(edict_t *ent) {
 		}
 	} else {
 		if(ent->layout & LAYOUT_CHASECAM && ent->client->chase_target)
-			sprintf(string + strlen(string), "xv 2 yb -68 string2 \"Chasing %s\" ", ent->client->chase_target->client->pers.netname);
+			snprintf(string + strlen(string), 1024 - strlen(string), "xv 2 yb -68 string2 \"Chasing %s\" ", ent->client->chase_target->client->pers.netname);
 
 		if(ent->layout & LAYOUT_ID) {
 			if(ent->id_ent) {
 				if(ctf->value)
-					sprintf(string + strlen(string), "xv 2 yb -60 string2 \"Viewing %s (%s)\" ", 
+					snprintf(string + strlen(string), 1024 - strlen(string), "xv 2 yb -60 string2 \"Viewing %s (%s)\" ", 
 						ent->id_ent->client->pers.netname, Info_ValueForKey(ent->id_ent->client->pers.userinfo, "skin"));
 				else
-					sprintf(string + strlen(string), "xv 2 yb -60 string2 \"Viewing %s\" ", ent->id_ent->client->pers.netname);
+					snprintf(string + strlen(string), 1024 - strlen(string), "xv 2 yb -60 string2 \"Viewing %s\" ", ent->id_ent->client->pers.netname);
 			}
 			else
-				sprintf(string + strlen(string), " ");
+				snprintf(string + strlen(string), 1024 - strlen(string), " ");
 		}
 	}
 
