@@ -643,6 +643,10 @@ char	*vtos (vec3_t v);
 float vectoyaw (vec3_t vec);
 void vectoangles (vec3_t vec, vec3_t angles);
 
+#ifdef NEED_STRLCAT
+size_t	strlcat(char *dest, char* src, size_t n);
+#endif
+
 //
 // g_combat.c
 //

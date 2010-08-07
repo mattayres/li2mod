@@ -23,7 +23,6 @@
 ============================================================================*/
 
 #include "g_local.h"
-#include "tools.h"
 
 extern lvar_t *use_runes;
 
@@ -300,7 +299,7 @@ char *GetMOTD(void) {
 
 			if(strlen(buf) && strlen(motdstr) < (MOTDSTRLEN-128)) {
 				sprintf(add, "yb %d string \"%s\" ", pos, buf);
-				xstrncat(motdstr, add, MOTDSTRLEN);
+				strlcat(motdstr, add, MOTDSTRLEN);
 			}
  
 			pos += 8;
@@ -321,7 +320,7 @@ char *GetMOTD(void) {
 		"yb %d string \"http://quake2.lithium.com\" "
 		, pos, lithium_version, pos + 8, pos + 16);
 
-	xstrncat(motdstr, add, MOTDSTRLEN);
+	strlcat(motdstr, add, MOTDSTRLEN);
 
 	return motdstr;
 }
@@ -365,7 +364,7 @@ char *GetNews(void) {
 
 		if(strlen(buf)) {
 			sprintf(add, "yb %d string \"%s\" ", pos, buf);
-			xstrncat(newsstr, add, NEWSSTRLEN);
+			strlcat(newsstr, add, NEWSSTRLEN);
 		}
  
 		pos += 8;
@@ -374,7 +373,7 @@ char *GetNews(void) {
 		if(line == lines)
 			break;
 	}
-	xstrncat(newsstr, add, NEWSSTRLEN);
+	strlcat(newsstr, add, NEWSSTRLEN);
 
 	fclose(file);
 
@@ -409,7 +408,7 @@ char *GetCenterprint(edict_t *ent) {
 			c = d + 1;
 		}
 
-		xstrncat(centerprint, "xv 0 ", CENTERPRINTLEN);
+		strlcat(centerprint, "xv 0 ", CENTERPRINTLEN);
 		for(i = 0; i < lines; i++) {
 			if(strlen(line[i]))
 				snprintf(centerprint + strlen(centerprint), CENTERPRINTLEN-strlen(centerprint), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);

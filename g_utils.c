@@ -547,3 +547,21 @@ qboolean KillBox (edict_t *ent)
 
 	return true;		// all clear
 }
+
+#ifdef NEED_STRLCAT
+
+size_t strlcat(char *dest, char *src, size_t n) {
+	size_t free;
+	size_t ret;
+
+	ret = strlen(dest) + strlen(src);
+
+	free = n - strlen(dest) - 1;
+
+	if (free > 0)
+		strncat(dest, src, free);
+
+	return ret;
+}
+
+#endif
