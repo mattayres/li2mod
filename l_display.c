@@ -210,16 +210,16 @@ int StatusBar_Update(edict_t *ent) {
 	ent->lithium_flags &= ~LITHIUM_STATUSBAR;
 
 	if(ent->hud > HUD_NONE)
-		strcat(statusbar, bottombar);
+		strlcat(statusbar, bottombar, 1400);
 
 	if(ent->hud == HUD_NORMAL || (ent->hud == HUD_AMMO && !ctf->value))
-		strcat(statusbar, "yt 0 xr -50 num 3 25 ");
+		strlcat(statusbar, "yt 0 xr -50 num 3 25 ", 1400);
 
 	if(ent->hud == HUD_AMMO && !ctf->value)
-		strcat(statusbar, ammobar);
+		strlcat(statusbar, ammobar, 1400);
 
 	if(ent->hud == HUD_LITHIUM && !ctf->value) {
-		strcat(statusbar,
+		strlcat(statusbar,
 			"if 31 "
 			"xr -44 "
 			"yt 16 string Frags "
@@ -237,12 +237,12 @@ int StatusBar_Update(edict_t *ent) {
 			"if 29 "
 			"xr -36 yt 168 string Rune "
 			"xr -68 yt 176 stat_string 29 "
-			"endif "
-			);
+			"endif ",
+			1400);
 	}
 
 	if(ctf->value)
-		strcat(statusbar, ctf_statusbar);
+		strlcat(statusbar, ctf_statusbar, 1400);
 
 	gi.WriteByte(0x0D);
 	gi.WriteShort(5);
@@ -297,7 +297,7 @@ char *GetMOTD(void) {
 //				buf[32] = '\0';
 
 			if(strlen(buf)) {
-				sprintf(add, "yb %d string \"%s\" ", pos, buf);
+				snprintf(add, 256, "yb %d string \"%s\" ", pos, buf);
 				strlcat(motdstr, add, DISPLAYSTRLEN);
 			}
  
@@ -313,7 +313,7 @@ char *GetMOTD(void) {
 		fclose(file);
 	}
 
-	sprintf(add,
+	snprintf(add, 256,
 		"yb %d string2 \"Lithium II Mod v%s\" "
 		"yb %d string \"By Matt 'WhiteFang' Ayres\" "
 		"yb %d string \"http://quake2.lithium.com\" "
@@ -366,7 +366,7 @@ char *GetNews(void) {
 		if(c) *c = 0;
 
 		if(strlen(buf)) {
-			sprintf(add, "yb %d string \"%s\" ", pos, buf);
+			snprintf(add, 256, "yb %d string \"%s\" ", pos, buf);
 			strlcat(newsstr, add, DISPLAYSTRLEN);
 		}
  
@@ -569,11 +569,11 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 		Highscores_Scoreboard(string, &down);
 
 	if(ent->board == SCORES_BYFRAGS)
-		strcat(string, va("yv %d xv 152 string2 Frags xv 208 string \"FPH Time Ping\" ", down));
+		strlcat(string, va("yv %d xv 152 string2 Frags xv 208 string \"FPH Time Ping\" ", down), 1400);
 	else if(ent->board == SCORES_BYFPH)
-		strcat(string, va("yv %d xv 152 string \"Frags      Time Ping\" xv 208 string2 FPH ", down));
+		strlcat(string, va("yv %d xv 152 string \"Frags      Time Ping\" xv 208 string2 FPH ", down), 1400);
 	
-	strcat(string, "xv 0 ");
+	strlcat(string, "xv 0 ", 1400);
 	for(i = 0; i < ent->lclient->board_show; i++) {
 		j = ent->sel + i;
 		if(j >= sorted_ents)
@@ -592,18 +592,18 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 		highlight = (!ent->client->chase_target && cl_ent == ent) || cl_ent == ent->client->chase_target;
 
 		if(cl_ent->lithium_flags & LITHIUM_PLAYING)
-			sprintf(entry, "yv %d string%s \"%2d %-16s %4d %4d %4d %4d\" ", i * 10 + down + 10, highlight ? "2" : "",
+			snprintf(entry, 1024, "yv %d string%s \"%2d %-16s %4d %4d %4d %4d\" ", i * 10 + down + 10, highlight ? "2" : "",
 				j + 1, cl->pers.netname, cl->resp.score, cl_ent->fph, cl_ent->play_frames / 600, MIN(cl_ent->lclient->ping, 999));
 		else {
 			if(cl->chase_target)
-				sprintf(entry, "yv %d string%s \"   %-16s  (chasing #%d)%s %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
+				snprintf(entry, 1024, "yv %d string%s \"   %-16s  (chasing #%d)%s %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
 					cl->pers.netname, cl->chase_target->place, cl->chase_target->place < 10 ? " " : "", MIN(cl_ent->lclient->ping, 999));
 			else
-				sprintf(entry, "yv %d string%s \"   %-16s  (observer)    %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
+				snprintf(entry, 1024, "yv %d string%s \"   %-16s  (observer)    %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
 					cl->pers.netname, MIN(cl_ent->lclient->ping, 999));
 		}
 
-		strcat(string, entry);
+		strlcat(string, entry, 1400);
 	}
 
 	if(level.intermissiontime) {
@@ -615,8 +615,8 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 	}
 	else {
 		if(countclients() > ent->lclient->board_show)
-			strcat(string, va("xv 0 yv %d cstring \"Use [ and ] to scroll scores\" ", down + ent->lclient->board_show * 10 + 16));
-		strcat(string, va("xv 0 yv %d cstring \"Press 0 for Lithium II menu\" ", down + ent->lclient->board_show * 10 + 24));
+			strlcat(string, va("xv 0 yv %d cstring \"Use [ and ] to scroll scores\" ", down + ent->lclient->board_show * 10 + 16), 1400);
+		strlcat(string, va("xv 0 yv %d cstring \"Press 0 for Lithium II menu\" ", down + ent->lclient->board_show * 10 + 24), 1400);
 	}
 
 	gi.WriteByte(svc_layout);
