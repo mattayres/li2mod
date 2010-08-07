@@ -23,8 +23,10 @@
 ============================================================================*/
 
 #include "g_local.h"
+#define MOTDSTRLEN (u1024)
 
 extern lvar_t *use_runes;
+static char motdstr[MOTDSTRLEN];
 
 void CTFSetIDView(edict_t *ent);
 
@@ -255,7 +257,6 @@ char *GetMOTD(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256] = "";
-	static char motdstr[640];
 
 	file = fopen(file_gamedir(motd->string), "rt");
 	lines = 0;
@@ -276,7 +277,7 @@ char *GetMOTD(void) {
 
 	pos = -60 - lines * 8;
 
-	strcpy(motdstr, "xl 8 ");
+	strncpy(motdstr, "xl 8 ", MOTDSTRLEN);
 
 	line = 4;
 	if(file) {
@@ -290,9 +291,9 @@ char *GetMOTD(void) {
 //			if(strlen(buf) > 32)
 //				buf[32] = '\0';
 
-			if(strlen(buf) && strlen(motdstr) < 512) {
+			if(strlen(buf) && strlen(motdstr) < (MOTDSTRLEN-128)) {
 				sprintf(add, "yb %d string \"%s\" ", pos, buf);
-				strcat(motdstr, add);
+				strncat(motdstr, add, MOTDSTRLEN);
 			}
  
 			pos += 8;
@@ -313,7 +314,8 @@ char *GetMOTD(void) {
 		"yb %d string \"http://quake2.lithium.com\" "
 		, pos, lithium_version, pos + 8, pos + 16);
 
-	strcat(motdstr, add);
+	strncat(motdstr, add, MOTDSTRLEN);
+	motdstr[MOTDSTRLEN-1] = '\0';
 
 	return motdstr;
 }
