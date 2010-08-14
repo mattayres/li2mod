@@ -565,3 +565,18 @@ size_t strlcat(char *dest, char *src, size_t n) {
 }
 
 #endif
+
+#ifdef NEED_STRLCPY
+
+size_t strlcpy(char *dest, char *src, size_t n) {
+
+	if (n == 0)
+		return strlen(src);
+
+	strncpy(dest, src, n-1);
+	*(dest+n-1) = '\0';
+
+	return strlen(src);
+}
+
+#endif
