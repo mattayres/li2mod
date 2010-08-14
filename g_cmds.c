@@ -12,7 +12,7 @@ char *ClientTeam (edict_t *ent)
 	if (!ent->client)
 		return value;
 
-	strcpy(value, Info_ValueForKey (ent->client->pers.userinfo, "skin"));
+	strncpy(value, Info_ValueForKey (ent->client->pers.userinfo, "skin"), 511);
 	p = strchr(value, '/');
 	if (!p)
 		return value;
@@ -35,8 +35,8 @@ qboolean OnSameTeam (edict_t *ent1, edict_t *ent2)
 	if (!((int)(dmflags->value) & (DF_MODELTEAMS | DF_SKINTEAMS)))
 		return false;
 
-	strcpy (ent1Team, ClientTeam (ent1));
-	strcpy (ent2Team, ClientTeam (ent2));
+	strncpy (ent1Team, ClientTeam (ent1), 511);
+	strncpy (ent2Team, ClientTeam (ent2), 511);
 
 	if (strcmp(ent1Team, ent2Team) == 0)
 		return true;
@@ -817,10 +817,10 @@ void Cmd_Players_f (edict_t *ent)
 			game.clients[index[i]].pers.netname);
 		if (strlen (small) + strlen(large) > sizeof(large) - 100 )
 		{	// can't print all of them in one packet
-			strcat (large, "...\n");
+			strlcat (large, "...\n", 1280);
 			break;
 		}
-		strcat (large, small);
+		strlcat (large, small, 1280);
 	}
 
 	gi.cprintf (ent, PRINT_HIGH, "%s\n%i players\n", large, count);
@@ -908,9 +908,9 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 
 	if (arg0)
 	{
-		strcat (text, gi.argv(0));
-		strcat (text, " ");
-		strcat (text, gi.args());
+		strlcat (text, gi.argv(0), 2048);
+		strlcat (text, " ", 2048);
+		strlcat (text, gi.args(), 2048);
 	}
 	else
 	{
@@ -921,14 +921,14 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 			p++;
 			p[strlen(p)-1] = 0;
 		}
-		strcat(text, p);
+		strlcat(text, p, 2048);
 	}
 
 	// don't let text be too long for malicious reasons
 	if (strlen(text) > 150)
 		text[150] = 0;
 
-	strcat(text, "\n");
+	strlcat(text, "\n", 2048);
 
 	if (flood_msgs->value) {
 		cl = ent->client;
@@ -997,7 +997,7 @@ void Cmd_PlayerList_f(edict_t *ent)
 			gi.cprintf(ent, PRINT_HIGH, "%s", text);
 			return;
 		}
-		strcat(text, st);
+		strlcat(text, st, 1400);
 	}
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
