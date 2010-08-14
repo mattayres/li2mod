@@ -24,8 +24,8 @@
 
 #include "g_local.h"
 
-float lithium_ver = 1.30;
-int lithium_beta = 0;
+float lithium_ver = 1.31;
+int lithium_beta = 1;
 
 char lithium_version[16];
 char lithium_modname[32];
@@ -92,7 +92,7 @@ void Lithium_InitGame(void) {
 		snprintf(lithium_version, sizeof(lithium_version), "%1.2f", lithium_ver);
 	else
 		snprintf(lithium_version, sizeof(lithium_version), "%1.2f-beta%d", lithium_ver, lithium_beta);
-	snprintf(lithium_modname, sizeof(lithium_modname), "Lithium II Mod v%s", lithium_version);
+	snprintf(lithium_modname, sizeof(lithium_modname), "Lithium II Mod [NDC ed] v%s", lithium_version);
 
 	sscanf(gi.cvar("version", 0, 0)->string, "%f", &qver);
 
