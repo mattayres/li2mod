@@ -29,6 +29,7 @@ int lithium_beta = 0;
 
 char lithium_version[16];
 char lithium_modname[32];
+static char file_gamedir_buffer[256];
 
 lvar_t *use_safety;
 lvar_t *use_startobserver;
@@ -88,10 +89,10 @@ float qver;
 void Lithium_InitGame(void) {
 
 	if(!lithium_beta)
-		sprintf(lithium_version, "%1.2f", lithium_ver);
+		snprintf(lithium_version, sizeof(lithium_version), "%1.2f", lithium_ver);
 	else
-		sprintf(lithium_version, "%1.2f-beta%d", lithium_ver, lithium_beta);
-	sprintf(lithium_modname, "Lithium II Mod v%s", lithium_version);
+		snprintf(lithium_version, sizeof(lithium_version), "%1.2f-beta%d", lithium_ver, lithium_beta);
+	snprintf(lithium_modname, sizeof(lithium_modname), "Lithium II Mod v%s", lithium_version);
 
 	sscanf(gi.cvar("version", 0, 0)->string, "%f", &qver);
 
@@ -274,7 +275,7 @@ void Lithium_FillUserinfo(edict_t *ent) {
 		return;
 
 	if(!strlen(Info_ValueForKey(ent->client->pers.userinfo, "ip"))) {
-		sprintf(buf, "%d.%d.%d.%d:%d", ent->lclient->ip[0], ent->lclient->ip[1], ent->lclient->ip[2], ent->lclient->ip[3], ent->lclient->port);
+		snprintf(buf, sizeof(buf), "%d.%d.%d.%d:%d", ent->lclient->ip[0], ent->lclient->ip[1], ent->lclient->ip[2], ent->lclient->ip[3], ent->lclient->port);
 		Info_SetValueForKey(ent->client->pers.userinfo, "ip", buf);
 	}
 
@@ -286,15 +287,15 @@ void Lithium_FillUserinfo(edict_t *ent) {
 		flags |= INFOFLAG_CHASING;
 	if(ent->lithium_flags & LITHIUM_CHASELEADER)
 		flags |= INFOFLAG_CHASELEADER;
-	sprintf(buf, "%d", flags);
+	snprintf(buf, sizeof(buf), "%d", flags);
 	Info_SetValueForKey(ent->client->pers.userinfo, "flags", buf);
-	sprintf(buf, "%d", ent->hud);
+	snprintf(buf, sizeof(buf), "%d", ent->hud);
 	Info_SetValueForKey(ent->client->pers.userinfo, "hud", buf);
-	sprintf(buf, "%d", ent->board);
+	snprintf(buf, sizeof(buf), "%d", ent->board);
 	Info_SetValueForKey(ent->client->pers.userinfo, "board", buf);
-	sprintf(buf, "%d", ent->lclient->board_show);
+	snprintf(buf, sizeof(buf), "%d", ent->lclient->board_show);
 	Info_SetValueForKey(ent->client->pers.userinfo, "bshow", buf);
-	sprintf(buf, "%d", ent->lclient->chan_id);
+	snprintf(buf, sizeof(buf), "%d", ent->lclient->chan_id);
 	Info_SetValueForKey(ent->client->pers.userinfo, "chan_id", buf);
 	Info_SetValueForKey(ent->client->pers.userinfo, "channel", ent->lclient->chan);
 }
@@ -358,7 +359,7 @@ void News_RunFrame(void) {
 				ent->news_time = level.time + news_time->value;
 			}
 
-			strcpy(oldnews, news);
+			strlcpy(oldnews, news, sizeof(oldnews));
 		}
 		news_check_time = level.time + 30;
 	}
@@ -374,7 +375,7 @@ void Lithium_RunFrame(void) {
 
 	if(first->value == 2) {
 		char buf[64];
-		sprintf(buf, "gamemap %s\n", level.changemap);
+		snprintf(buf, sizeof(buf), "gamemap %s\n", level.changemap);
 		gi.AddCommandString(buf);
 		return;
 	}
@@ -489,7 +490,7 @@ void Lithium_ClientBegin(edict_t *ent) {
 
 	if(strlen(bounce->string)) {
 		char cmd[80];
-		sprintf(cmd, "connect %s\n", bounce->string);
+		snprintf(cmd, sizeof(cmd), "connect %s\n", bounce->string);
 		stuffcmd(ent, cmd);
 		gi.dprintf("%s bounced to %s\n", ent->client->pers.netname, bounce->string);
 	}
@@ -788,8 +789,7 @@ void ZbotHandle(edict_t *ent) {
 			time_t t;
 			char buf[32];
 			time(&t);
-			strcpy(buf, ctime(&t));
-			buf[strlen(buf) - 1] = 0;
+			strlcpy(buf, ctime(&t), sizeof(buf));
 			fprintf(file, "[%s] %s (%d.%d.%d.%d:%d)\n", buf, ent->client->pers.netname, 
 				ent->lclient->ip[0], ent->lclient->ip[1], ent->lclient->ip[2], ent->lclient->ip[3], ent->lclient->port);
 			fclose(file);
@@ -1072,7 +1072,7 @@ void Lithium_ClientEndFrame(edict_t *ent) {
 	// client has hit ESC key
 	if(ent->layout && !ent->client->showscores) {
 		if(ent->layout & LAYOUT_MENU && ent->menu->editing) {
-			strcpy(ent->menu->edit, "  ");
+			strlcpy(ent->menu->edit, "  ", sizeof(ent->menu->edit));
 			Menu_EditEnd(ent);
 			ent->client->showscores = true;
 			return;
@@ -1104,7 +1104,7 @@ void Lithium_DoUpgrade(void) {
 
 	gi.bprintf(PRINT_HIGH, "\nServer is upgrading.  Please wait...\n\n");
 
-	sprintf(cmd, "reconnect\n");
+	snprintf(cmd, sizeof(cmd), "reconnect\n");
 
 	for(i = 0; i < game.maxclients; i++) {
 		ent = g_edicts + 1 + i;
@@ -1404,8 +1404,8 @@ void Lithium_CalcPlaces(void) {
 	}
 
 	if(ctf->value) {
-		sprintf(team1players, "  (%d players, %d score)", team1, score1);
-		sprintf(team2players, "  (%d players, %d score)", team2, score2);
+		snprintf(team1players, sizeof(team1players), "  (%d players, %d score)", team1, score1);
+		snprintf(team2players, sizeof(team2players), "  (%d players, %d score)", team2, score2);
 	}
 }
 
@@ -1696,19 +1696,18 @@ void CTFSetIDView(edict_t *ent) {
 // misc
 
 char *file_gamedir(char *name) {
-	static char filename[256];
 	char gdir[256];
 
 	if(strchr(name, '/') || strchr(name, '\\'))
-		strcpy(filename, name);
+		strlcpy(file_gamedir_buffer, name, sizeof(file_gamedir_buffer));
 	else {
-		strcpy(gdir, gi.cvar("gamedir", "", 0)->string);
+		strlcpy(gdir, gi.cvar("gamedir", "", 0)->string, sizeof(gdir));
 		if(!strlen(gdir))
-			strcpy(gdir, "baseq2");
-		sprintf(filename, "%s/%s", gdir, name);
+			strlcpy(gdir, "baseq2", sizeof(gdir));
+		snprintf(file_gamedir_buffer, sizeof(file_gamedir_buffer), "%s/%s", gdir, name);
 	}
 
-	return filename;
+	return file_gamedir_buffer;
 }
 
 qboolean file_exist(char *name) {
@@ -1726,10 +1725,19 @@ qboolean file_exist(char *name) {
 
 // removing beginning and trailing whitespaces
 void String_Crop(char *str) {
-	char *c = str;
+	char *c;
+	int l;
+
+	l = strlen(str)+1;
+	c = calloc(1, l);
+	if (!c)
+		return;
+	strlcpy(c, str, l);
+
 	while(*c != '\0' && (*c == ' ' || *c == '\t'))
 		c++;
-	strcpy(str, c);
+	strlcpy(str, c, l);
+	free(c);
 
 	c = str + strlen(str) - 1;
 	while(c > str && (*c == ' ' || *c == '\t'))
@@ -1769,15 +1777,15 @@ void centerprintf(edict_t *ent, char *format, ...) {
 		return;
 
 	if(!strlen(format)) {
-		strcpy(ent->centerprint, "");
+		strlcpy(ent->centerprint, "", sizeof(ent->centerprint));
 		Lithium_LayoutOff(ent, LAYOUT_CENTERPRINT);
 		return;
 	}
 
-	strcpy(old, ent->centerprint);
+	strlcpy(old, ent->centerprint, sizeof(old));
 
 	va_start(argptr, format);
-	vsprintf(ent->centerprint, format, argptr);
+	vsnprintf(ent->centerprint, sizeof(ent->centerprint), format, argptr);
 	va_end(argptr);
 
 	ent->centerprint_time = level.time + 2.5;
@@ -1795,15 +1803,15 @@ void centerprintf2(edict_t *ent, char *format, ...) {
 		return;
 
 	if(!strlen(format)) {
-		strcpy(ent->centerprint2, "");
+		strlcpy(ent->centerprint2, "", sizeof(ent->centerprint2));
 		Lithium_LayoutOff(ent, LAYOUT_CENTERPRINT);
 		return;
 	}
 
-	strcpy(old, ent->centerprint2);
+	strlcpy(old, ent->centerprint2, sizeof(old));
 
 	va_start(argptr, format);
-	vsprintf(ent->centerprint2, format, argptr);
+	vsnprintf(ent->centerprint2, sizeof(ent->centerprint2), format, argptr);
 	va_end(argptr);
 
 	if(strcmp(old, ent->centerprint))
@@ -2197,11 +2205,11 @@ qboolean Lithium_CmdSay(edict_t *ent) {
 		char buf[512] = "M";
 		for(i = 0; i < MAX(strlen(gi.args()), 8); i++) {
 			r = random() * 10;
-			if(r < 4) strcat(buf, "m");
-			else if(r < 7) strcat(buf, "r");
-			else strcat(buf, "h");
+			if(r < 4) strlcat(buf, "m", sizeof(buf));
+			else if(r < 7) strlcat(buf, "r", sizeof(buf));
+			else strlcat(buf, "h", sizeof(buf));
 		}
-		strcat(buf, ".\n");
+		strlcat(buf, ".\n", sizeof(buf));
 		gi.cprintf(ent, PRINT_HIGH, buf);
 		return false;
 	}
