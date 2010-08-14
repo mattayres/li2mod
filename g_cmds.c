@@ -817,10 +817,10 @@ void Cmd_Players_f (edict_t *ent)
 			game.clients[index[i]].pers.netname);
 		if (strlen (small) + strlen(large) > sizeof(large) - 100 )
 		{	// can't print all of them in one packet
-			strlcat (large, "...\n", 1280);
+			strlcat (large, "...\n", sizeof(large));
 			break;
 		}
-		strlcat (large, small, 1280);
+		strlcat (large, small, sizeof(large));
 	}
 
 	gi.cprintf (ent, PRINT_HIGH, "%s\n%i players\n", large, count);
@@ -908,9 +908,9 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 
 	if (arg0)
 	{
-		strlcat (text, gi.argv(0), 2048);
-		strlcat (text, " ", 2048);
-		strlcat (text, gi.args(), 2048);
+		strlcat (text, gi.argv(0), sizeof(text));
+		strlcat (text, " ", sizeof(text));
+		strlcat (text, gi.args(), sizeof(text));
 	}
 	else
 	{
@@ -921,14 +921,14 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 			p++;
 			p[strlen(p)-1] = 0;
 		}
-		strlcat(text, p, 2048);
+		strlcat(text, p, sizeof(text));
 	}
 
 	// don't let text be too long for malicious reasons
 	if (strlen(text) > 150)
 		text[150] = 0;
 
-	strlcat(text, "\n", 2048);
+	strlcat(text, "\n", sizeof(text));
 
 	if (flood_msgs->value) {
 		cl = ent->client;
@@ -993,11 +993,11 @@ void Cmd_PlayerList_f(edict_t *ent)
 			e2->client->pers.netname,
 			e2->client->resp.spectator ? " (spectator)" : "");
 		if (strlen(text) + strlen(st) > sizeof(text) - 50) {
-			sprintf(text+strlen(text), "And more...\n");
+			snprintf(text+strlen(text), sizeof(text)-strlen(text), "And more...\n");
 			gi.cprintf(ent, PRINT_HIGH, "%s", text);
 			return;
 		}
-		strlcat(text, st, 1400);
+		strlcat(text, st, sizeof(text));
 	}
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
