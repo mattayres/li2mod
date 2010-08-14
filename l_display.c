@@ -210,13 +210,13 @@ int StatusBar_Update(edict_t *ent) {
 	ent->lithium_flags &= ~LITHIUM_STATUSBAR;
 
 	if(ent->hud > HUD_NONE)
-		strlcat(statusbar, bottombar, 1400);
+		strlcat(statusbar, bottombar, sizeof(statusbar));
 
 	if(ent->hud == HUD_NORMAL || (ent->hud == HUD_AMMO && !ctf->value))
-		strlcat(statusbar, "yt 0 xr -50 num 3 25 ", 1400);
+		strlcat(statusbar, "yt 0 xr -50 num 3 25 ", sizeof(statusbar));
 
 	if(ent->hud == HUD_AMMO && !ctf->value)
-		strlcat(statusbar, ammobar, 1400);
+		strlcat(statusbar, ammobar, sizeof(statusbar));
 
 	if(ent->hud == HUD_LITHIUM && !ctf->value) {
 		strlcat(statusbar,
@@ -238,11 +238,11 @@ int StatusBar_Update(edict_t *ent) {
 			"xr -36 yt 168 string Rune "
 			"xr -68 yt 176 stat_string 29 "
 			"endif ",
-			1400);
+			sizeof(statusbar));
 	}
 
 	if(ctf->value)
-		strlcat(statusbar, ctf_statusbar, 1400);
+		strlcat(statusbar, ctf_statusbar, sizeof(statusbar));
 
 	gi.WriteByte(0x0D);
 	gi.WriteShort(5);
@@ -282,7 +282,7 @@ char *GetMOTD(void) {
 
 	pos = -60 - lines * 8;
 
-	strncpy(motdstr, "xl 8 ", DISPLAYSTRLEN-1);
+	strlcpy(motdstr, "xl 8 ", DISPLAYSTRLEN);
 
 	line = 4;
 	if(file) {
@@ -297,7 +297,7 @@ char *GetMOTD(void) {
 //				buf[32] = '\0';
 
 			if(strlen(buf)) {
-				snprintf(add, 256, "yb %d string \"%s\" ", pos, buf);
+				snprintf(add, sizeof(add), "yb %d string \"%s\" ", pos, buf);
 				strlcat(motdstr, add, DISPLAYSTRLEN);
 			}
  
@@ -313,7 +313,7 @@ char *GetMOTD(void) {
 		fclose(file);
 	}
 
-	snprintf(add, 256,
+	snprintf(add, sizeof(add),
 		"yb %d string2 \"Lithium II Mod v%s\" "
 		"yb %d string \"By Matt 'WhiteFang' Ayres\" "
 		"yb %d string \"http://quake2.lithium.com\" "
@@ -356,7 +356,7 @@ char *GetNews(void) {
 
 	pos = -60 - lines * 8;
 
-	strncpy(newsstr, "xl 8 ", DISPLAYSTRLEN-1);
+	strlcpy(newsstr, "xl 8 ", DISPLAYSTRLEN);
 
 	line = 1;
 	while(fgets(buf, 256, file)) {
@@ -366,7 +366,7 @@ char *GetNews(void) {
 		if(c) *c = 0;
 
 		if(strlen(buf)) {
-			snprintf(add, 256, "yb %d string \"%s\" ", pos, buf);
+			snprintf(add, sizeof(add), "yb %d string \"%s\" ", pos, buf);
 			strlcat(newsstr, add, DISPLAYSTRLEN);
 		}
  
@@ -391,7 +391,7 @@ char *GetCenterprint(edict_t *ent) {
 		return NULL;
 
 	if(ent->centerprint && ent->centerprint2 && strlen(ent->centerprint2))
-		strncpy(ent->centerprint, ent->centerprint2, 1200);
+		strlcpy(ent->centerprint, ent->centerprint2, sizeof(ent->centerprint));
 
 	if(ent->centerprint && strlen(ent->centerprint)) {
 		int i, len, lines = 0;
@@ -407,8 +407,7 @@ char *GetCenterprint(edict_t *ent) {
 				len = d - c;
 				if(len > 39)
 					len = 39;
-				strncpy(line[lines], c, len);
-				line[lines][len] = '\0';
+				strlcpy(line[lines], c, sizeof(line[lines]));
 				lines++;
 			}
 			c = d + 1;
@@ -529,7 +528,7 @@ char *Lithium_GetAd(int down) {
 }
 
 void Lithium_SetAd(int num, char *str) {
-	strncpy(ad[num], str, 64-1);
+	strlcpy(ad[num], str, sizeof(ad[num]));
 }
 
 int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
@@ -569,11 +568,11 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 		Highscores_Scoreboard(string, &down);
 
 	if(ent->board == SCORES_BYFRAGS)
-		strlcat(string, va("yv %d xv 152 string2 Frags xv 208 string \"FPH Time Ping\" ", down), 1400);
+		strlcat(string, va("yv %d xv 152 string2 Frags xv 208 string \"FPH Time Ping\" ", down), sizeof(string));
 	else if(ent->board == SCORES_BYFPH)
-		strlcat(string, va("yv %d xv 152 string \"Frags      Time Ping\" xv 208 string2 FPH ", down), 1400);
+		strlcat(string, va("yv %d xv 152 string \"Frags      Time Ping\" xv 208 string2 FPH ", down), sizeof(string));
 	
-	strlcat(string, "xv 0 ", 1400);
+	strlcat(string, "xv 0 ", sizeof(string));
 	for(i = 0; i < ent->lclient->board_show; i++) {
 		j = ent->sel + i;
 		if(j >= sorted_ents)
@@ -592,31 +591,31 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 		highlight = (!ent->client->chase_target && cl_ent == ent) || cl_ent == ent->client->chase_target;
 
 		if(cl_ent->lithium_flags & LITHIUM_PLAYING)
-			snprintf(entry, 1024, "yv %d string%s \"%2d %-16s %4d %4d %4d %4d\" ", i * 10 + down + 10, highlight ? "2" : "",
+			snprintf(entry, sizeof(entry), "yv %d string%s \"%2d %-16s %4d %4d %4d %4d\" ", i * 10 + down + 10, highlight ? "2" : "",
 				j + 1, cl->pers.netname, cl->resp.score, cl_ent->fph, cl_ent->play_frames / 600, MIN(cl_ent->lclient->ping, 999));
 		else {
 			if(cl->chase_target)
-				snprintf(entry, 1024, "yv %d string%s \"   %-16s  (chasing #%d)%s %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
+				snprintf(entry, sizeof(entry), "yv %d string%s \"   %-16s  (chasing #%d)%s %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
 					cl->pers.netname, cl->chase_target->place, cl->chase_target->place < 10 ? " " : "", MIN(cl_ent->lclient->ping, 999));
 			else
-				snprintf(entry, 1024, "yv %d string%s \"   %-16s  (observer)    %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
+				snprintf(entry, sizeof(entry), "yv %d string%s \"   %-16s  (observer)    %4d\" ", i * 10 + down + 10, highlight ? "2" : "", 
 					cl->pers.netname, MIN(cl_ent->lclient->ping, 999));
 		}
 
-		strlcat(string, entry, 1400);
+		strlcat(string, entry, sizeof(string));
 	}
 
 	if(level.intermissiontime) {
 		c = Lithium_GetAd(down + ent->lclient->board_show * 10 + 32);
 		if (c) {
-			strlcat(string, c, 1400);
+			strlcat(string, c, sizeof(string));
 			free(c);
 		}
 	}
 	else {
 		if(countclients() > ent->lclient->board_show)
-			strlcat(string, va("xv 0 yv %d cstring \"Use [ and ] to scroll scores\" ", down + ent->lclient->board_show * 10 + 16), 1400);
-		strlcat(string, va("xv 0 yv %d cstring \"Press 0 for Lithium II menu\" ", down + ent->lclient->board_show * 10 + 24), 1400);
+			strlcat(string, va("xv 0 yv %d cstring \"Use [ and ] to scroll scores\" ", down + ent->lclient->board_show * 10 + 16), sizeof(string));
+		strlcat(string, va("xv 0 yv %d cstring \"Press 0 for Lithium II menu\" ", down + ent->lclient->board_show * 10 + 24), sizeof(string));
 	}
 
 	gi.WriteByte(svc_layout);
