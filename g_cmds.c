@@ -12,7 +12,7 @@ static char *ClientTeam (edict_t *ent)
 	if (!ent->client)
 		return ct_value;
 
-	strncpy(ct_value, Info_ValueForKey (ent->client->pers.userinfo, "skin"), 511);
+	strlcpy(ct_value, Info_ValueForKey (ent->client->pers.userinfo, "skin"), sizeof(ct_value));
 	p = strchr(ct_value, '/');
 	if (!p)
 		return ct_value;
@@ -35,8 +35,8 @@ qboolean OnSameTeam (edict_t *ent1, edict_t *ent2)
 	if (!((int)(dmflags->value) & (DF_MODELTEAMS | DF_SKINTEAMS)))
 		return false;
 
-	strncpy (ent1Team, ClientTeam (ent1), 511);
-	strncpy (ent2Team, ClientTeam (ent2), 511);
+	strlcpy (ent1Team, ClientTeam (ent1), sizeof(ent1Team));
+	strlcpy (ent2Team, ClientTeam (ent2), sizeof(ent2Team));
 
 	if (strcmp(ent1Team, ent2Team) == 0)
 		return true;
