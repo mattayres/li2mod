@@ -610,7 +610,7 @@ void Lithium_ClientBegin(edict_t *ent) {
 	FragTrak_ClientBegin(ent);
 	LNet_ClientBegin(ent);
 
-	if(use_startobserver->value || use_startchasecam->value && !(ctf->value && !ent->client->resp.ctf_team)) {
+	if(use_startobserver->value || (use_startchasecam->value && !(ctf->value && !ent->client->resp.ctf_team))) {
 		Lithium_Observer(ent, false);
 		if(use_startchasecam->value)
 			ent->lithium_flags |= LITHIUM_GOCHASECAM | LITHIUM_CHASELEADER;
@@ -1200,15 +1200,15 @@ struct {
 	char *ammo;
 	int rounds;
 } weaplist[9] = {
-	"blaster", "blaster", 1,
-	"shotgun", "shells", 1,
-	"super shotgun", "shells", 2,
-	"machinegun", "bullets", 1,
-	"chaingun", "bullets", 1,
-	"grenade launcher", "grenades", 1,
-	"rocket launcher", "rockets", 1,
-	"hyperblaster", "cells", 1,
-	"railgun", "slugs", 1,
+	{"blaster", "blaster", 1},
+	{"shotgun", "shells", 1},
+	{"super shotgun", "shells", 2},
+	{"machinegun", "bullets", 1},
+	{"chaingun", "bullets", 1},
+	{"grenade launcher", "grenades", 1},
+	{"rocket launcher", "rockets", 1},
+	{"hyperblaster", "cells", 1},
+	{"railgun", "slugs", 1},
 };
 
 void Lithium_NoAmmoWeaponChange(edict_t *ent) {
