@@ -22,6 +22,8 @@
 
 ============================================================================*/
 
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "g_local.h"
 #ifdef WIN32
 #include "direct.h"
@@ -41,7 +43,7 @@ char *Highscores_File(void) {
 
 void Highscores_Read(void) {
 	int p = 0;
-	char *c, buf[64];
+	char buf[64];
 	FILE *file = fopen(Highscores_File(), "rt");
 
 	place_t *place = NULL;
@@ -157,7 +159,7 @@ void Highscores_Update(void) {
 #ifdef WIN32
 	_mkdir(file_gamedir("hiscores"));
 #else
-	mkdir(file_gamedir("hiscores"));
+	mkdir(file_gamedir("hiscores"), S_IRWXU | S_IRWXG | S_IRWXO);
 #endif
 	file = fopen(Highscores_File(), "wt");
 	if(!file)
@@ -223,7 +225,8 @@ int Highscores_FullScoreboard(edict_t *ent) {
 
 	strlcat(string, va("xv 0 yv 40 cstring \"High scores for %s (in %d min)\" ", level.mapname, (int)timelimit->value), sizeof(string));
 	while(place) {
-		strlcat(string, va("xv -4 yv %d cstring \"%2d %-16s %3d on %s\" ", 56 + i * 8, i++ + 1, place->name, place->score, place->date), sizeof(string));
+		i++;
+		strlcat(string, va("xv -4 yv %d cstring \"%2d %-16s %3d on %s\" ", 56 + i * 8, i, place->name, place->score, place->date), sizeof(string));
 		place = place->next;
 	}
 
