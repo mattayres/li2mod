@@ -38,13 +38,13 @@ void GSLog(char *format, ...) {
 		return;
 
 	va_start(argptr, format);
-	vsprintf(buf, format, argptr);
+	vsnprintf(buf, sizeof(buf), format, argptr);
 	va_end(argptr);
 
 #ifdef WIN32
-	strcat(buf, "\n");
+	strlcat(buf, "\n", sizeof(buf));
 #else
-	strcat(buf, "\r\n");
+	strlcat(buf, "\r\n", sizeof(buf));
 #endif
 
 	fprintf(gslog_file, "%s", buf);
