@@ -57,12 +57,12 @@ extern lvar_t *use_runes, *use_hook, *use_nocamp, *use_mapvote, *use_highscores,
 void Var_SetFeatures(void) {
 	char features[256] = "";
 	
-	if(use_runes->value) strcat(features, "Runes, ");
-	if(use_hook->value) strcat(features, "Hook, ");
-	if(use_nocamp->value) strcat(features, "NoCamp, ");
-	if(use_mapvote->value) strcat(features, "MapVote, ");
-	if(use_highscores->value) strcat(features, "HiScores, ");
-	if(use_zbotkick->value) strcat(features, "ZbotKick, ");
+	if(use_runes->value) strlcat(features, "Runes, ", sizeof(features));
+	if(use_hook->value) strlcat(features, "Hook, ", sizeof(features));
+	if(use_nocamp->value) strlcat(features, "NoCamp, ", sizeof(features));
+	if(use_mapvote->value) strlcat(features, "MapVote, ", sizeof(features));
+	if(use_highscores->value) strlcat(features, "HiScores, ", sizeof(features));
+	if(use_zbotkick->value) strlcat(features, "ZbotKick, ", sizeof(features));
 
 	if(strlen(features))
 		features[strlen(features) - 2] = 0;
@@ -261,7 +261,7 @@ void dmflags_change(void) {
 	int i;
 	for(i = 0; i < 16; i++) {
 		char name[16];
-		sprintf(name, "dmflag[%d]", i);
+		snprintf(name, sizeof(name), "dmflag[%d]", i);
 		if((int)dmflags->value & 1 << i)
 			gi.cvar_set(name, "1");
 		else
@@ -280,7 +280,7 @@ void dmflag_change(void) {
 		else
 			flags &= ~(1 << i);
 
-	sprintf(fl, "%d", flags);
+	snprintf(fl, sizeof(fl), "%d", flags);
 	gi.cvar_set(dmflags->name, fl);
 }
 
@@ -290,7 +290,7 @@ void Var_InitGame(void) {
 
 	for(i = 0; i < 16; i++) {
 		char name[16];
-		sprintf(name, "dmflag[%d]", i);
+		snprintf(name, sizeof(name), "dmflag[%d]", i);
 		dmflag[i] = lvar(name, "0", "^", VAR_NONE);
 		dmflag[i]->func = dmflag_change;
 	}
