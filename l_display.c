@@ -565,7 +565,7 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 	stringlength = strlen(string);
 
 	if(use_highscores->value)
-		Highscores_Scoreboard(string, &down);
+		Highscores_Scoreboard(string, sizeof(string), &down);
 
 	if(ent->board == SCORES_BYFRAGS)
 		strlcat(string, va("yv %d xv 152 string2 Frags xv 208 string \"FPH Time Ping\" ", down), sizeof(string));

@@ -537,7 +537,7 @@ struct place_t {
 void Highscores_Read(void);
 void Highscores_Update(void);
 void Highscores_List(edict_t *ent);
-void Highscores_Scoreboard(char *string, int *down);
+void Highscores_Scoreboard(char *string, unsigned int strlen, int *down);
 int Highscores_FullScoreboard(edict_t *ent);
 
 //#include "camclient.h"
