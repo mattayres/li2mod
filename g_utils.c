@@ -561,6 +561,11 @@ size_t strlcat(char *dest, char *src, size_t n) {
 	if (free > 0)
 		strncat(dest, src, free);
 
+#ifdef STRL_DEBUG
+	if (ret >= n)
+		Com_Printf ("strlcat: buffer overflow avoided (%i >= %i)\n", ret, n);
+#endif
+
 	return ret;
 }
 
@@ -569,14 +574,21 @@ size_t strlcat(char *dest, char *src, size_t n) {
 #ifdef NEED_STRLCPY
 
 size_t strlcpy(char *dest, char *src, size_t n) {
+	size_t ret;
 
+	ret = strlen(src);
 	if (n == 0)
-		return strlen(src);
+		return ret;
 
 	strncpy(dest, src, n-1);
 	*(dest+n-1) = '\0';
 
-	return strlen(src);
+#ifdef STRL_DEBUG
+	if (ret >= n)
+		Com_Printf ("strlcpy: buffer overflow avoided (%i >= %i)\n", ret, n);
+#endif
+
+	return ret;
 }
 
 #endif
