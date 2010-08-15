@@ -317,8 +317,8 @@ char *GetMOTD(void) {
 	strlcat(displaystring, add, sizeof(displaystring));
 #ifdef GIT_HASH
 	snprintf(add, sizeof(add),
-		"yb %d string \"git %s\" "
-		, pos + 24, GIT_HASH);
+		"yb %d string \"git " GIT_HASH "\" "
+		, pos + 24);
 	strlcat(displaystring, add, sizeof(displaystring));
 #endif
 
