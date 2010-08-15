@@ -231,6 +231,7 @@ void R_ConcatTransforms (float in1[3][4], float in2[3][4], float out[3][4])
 //============================================================================
 
 
+#if 0
 float Q_fabs (float f)
 {
 #if 0
@@ -243,6 +244,7 @@ float Q_fabs (float f)
 	return * ( float * ) &tmp;
 #endif
 }
+#endif
 
 #if defined _M_IX86 && !defined C_ONLY
 #pragma warning (disable:4035)
