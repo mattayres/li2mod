@@ -315,6 +315,12 @@ char *GetMOTD(void) {
 		, pos, lithium_version, pos + 8, pos + 16);
 
 	strlcat(displaystring, add, sizeof(displaystring));
+#ifdef GIT_HASH
+	snprintf(add, sizeof(add),
+		"yb %d string \"git %s\" "
+		, pos + 24, GIT_HASH);
+	strlcat(displaystring, add, sizeof(displaystring));
+#endif
 
 	return displaystring;
 }
