@@ -28,7 +28,7 @@ float lithium_ver = 1.31;
 int lithium_beta = 1;
 
 char lithium_version[16];
-char lithium_modname[32];
+char lithium_modname[48];
 static char file_gamedir_buffer[256];
 
 lvar_t *use_safety;

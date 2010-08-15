@@ -309,10 +309,10 @@ char *GetMOTD(void) {
 	}
 
 	snprintf(add, sizeof(add),
-		"yb %d string2 \"Lithium II Mod v%s\" "
+		"yb %d string2 \"%s\" "
 		"yb %d string \"By Matt 'WhiteFang' Ayres\" "
 		"yb %d string \"http://quake2.lithium.com\" "
-		, pos, lithium_version, pos + 8, pos + 16);
+		, pos, lithium_modname, pos + 8, pos + 16);
 
 	strlcat(displaystring, add, sizeof(displaystring));
 #ifdef GIT_HASH
