@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "strl.h"
+
 #if (defined _M_IX86 || defined __i386__) && !defined C_ONLY && !defined __sun__
 #define id386	1
 #else
@@ -194,7 +196,7 @@ char *COM_SkipPath (char *pathname);
 void COM_StripExtension (char *in, char *out);
 void COM_FileBase (char *in, char *out);
 void COM_FilePath (char *in, char *out);
-void COM_DefaultExtension (char *path, char *extension);
+void COM_DefaultExtension (char *path, unsigned int pathlen, char *extension);
 
 char *COM_Parse (char **data_p);
 // data is an in/out parm, returns a parsed out token

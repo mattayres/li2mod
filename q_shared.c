@@ -10,6 +10,8 @@ vec3_t vec3_origin = {0,0,0};
 #pragma optimize( "", off )
 #endif
 
+static char va_string[1024];
+
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
 {
 	float	m[3][3];
@@ -885,7 +887,8 @@ void COM_FilePath (char *in, char *out)
 COM_DefaultExtension
 ==================
 */
-void COM_DefaultExtension (char *path, char *extension)
+
+void COM_DefaultExtension (char *path, unsigned int pathlen, char *extension)
 {
 	char    *src;
 //
@@ -901,7 +904,7 @@ void COM_DefaultExtension (char *path, char *extension)
 		src--;
 	}
 
-	strcat (path, extension);
+	strlcat (path, extension, pathlen);
 }
 
 /*
@@ -1031,13 +1034,12 @@ FIXME: make this buffer size safe someday
 char	*va(char *format, ...)
 {
 	va_list		argptr;
-	static char		string[1024];
 	
 	va_start (argptr, format);
-	vsprintf (string, format,argptr);
+	vsnprintf (va_string, sizeof(va_string), format,argptr);
 	va_end (argptr);
 
-	return string;	
+	return va_string;	
 }
 
 
@@ -1208,11 +1210,11 @@ void Com_sprintf (char *dest, int size, char *fmt, ...)
 	char	bigbuffer[0x10000];
 
 	va_start (argptr,fmt);
-	len = vsprintf (bigbuffer,fmt,argptr);
+	len = vsnprintf (bigbuffer, sizeof(bigbuffer), fmt,argptr);
 	va_end (argptr);
 	if (len >= size)
 		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
-	strncpy (dest, bigbuffer, size-1);
+	strlcpy (dest, bigbuffer, size);
 }
 
 /*
@@ -1279,12 +1281,19 @@ void Info_RemoveKey (char *s, char *key)
 	char	pkey[512];
 	char	value[512];
 	char	*o;
+	char	*buf;
+	int	buflen;
 
 	if (strstr (key, "\\"))
 	{
 //		Com_Printf ("Can't use a key with a \\\n");
 		return;
 	}
+
+	buflen = strlen(s)+1;
+	buf = calloc(1, buflen);
+	if (!buf)
+		return;
 
 	while (1)
 	{
@@ -1294,8 +1303,10 @@ void Info_RemoveKey (char *s, char *key)
 		o = pkey;
 		while (*s != '\\')
 		{
-			if (!*s)
+			if (!*s) {
+				free(buf);
 				return;
+			}
 			*o++ = *s++;
 		}
 		*o = 0;
@@ -1304,20 +1315,27 @@ void Info_RemoveKey (char *s, char *key)
 		o = value;
 		while (*s != '\\' && *s)
 		{
-			if (!*s)
+			if (!*s) {
+				free(buf);
 				return;
+			}
 			*o++ = *s++;
 		}
 		*o = 0;
 
 		if (!strcmp (key, pkey) )
 		{
-			strcpy (start, s);	// remove this part
+			// Remove this part
+			strlcpy(buf, s, buflen);
+			strlcpy(start, buf, buflen);
+			free(buf);
 			return;
 		}
 
-		if (!*s)
+		if (!*s) {
+			free(buf);
 			return;
+		}
 	}
 
 }
