@@ -200,7 +200,10 @@ void Lithium_InitLevel(void) {
 	if(first->value == 2)
 		first->value = 0;
 
-	gi.dprintf("Lithium II Mod v%s\n", lithium_version);
+	gi.dprintf("Lithium II Mod [NDC ed] v%s\n", lithium_version);
+#ifdef GIT_HASH
+	gi.dprintf("GIT hash " GIT_HASH "\n");
+#endif
 	gi.dprintf("Map: %s  Clients: %d  Mode: %s\n", level.mapname, last_clients, ctf->value ? "CTF" : "DM");
 
 	if(use_highscores->value) {
