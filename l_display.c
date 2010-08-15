@@ -26,7 +26,7 @@
 
 extern lvar_t *use_runes;
 
-#define DISPLAYSTRLEN (1024u)
+static char displaystring[1024];
 
 void CTFSetIDView(edict_t *ent);
 
@@ -257,11 +257,6 @@ char *GetMOTD(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256] = "";
-	char* motdstr;
-
-	motdstr = calloc(1, DISPLAYSTRLEN);
-	if (!motdstr)
-		return NULL;
 
 	file = fopen(file_gamedir(motd->string), "rt");
 	lines = 0;
@@ -282,7 +277,7 @@ char *GetMOTD(void) {
 
 	pos = -60 - lines * 8;
 
-	strlcpy(motdstr, "xl 8 ", DISPLAYSTRLEN);
+	strlcpy(displaystring, "xl 8 ", sizeof(displaystring));
 
 	line = 4;
 	if(file) {
@@ -298,7 +293,7 @@ char *GetMOTD(void) {
 
 			if(strlen(buf)) {
 				snprintf(add, sizeof(add), "yb %d string \"%s\" ", pos, buf);
-				strlcat(motdstr, add, DISPLAYSTRLEN);
+				strlcat(displaystring, add, sizeof(displaystring));
 			}
  
 			pos += 8;
@@ -319,9 +314,9 @@ char *GetMOTD(void) {
 		"yb %d string \"http://quake2.lithium.com\" "
 		, pos, lithium_version, pos + 8, pos + 16);
 
-	strlcat(motdstr, add, DISPLAYSTRLEN);
+	strlcat(displaystring, add, sizeof(displaystring));
 
-	return motdstr;
+	return displaystring;
 }
 
 qboolean isnews = false;
@@ -331,11 +326,6 @@ char *GetNews(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256];
-	char *newsstr;
-
-	newsstr = calloc(1, DISPLAYSTRLEN);
-	if (!newsstr)
-		return NULL;
 
 	file = fopen(file_gamedir(news->string), "rt");
 
@@ -356,7 +346,7 @@ char *GetNews(void) {
 
 	pos = -60 - lines * 8;
 
-	strlcpy(newsstr, "xl 8 ", DISPLAYSTRLEN);
+	strlcpy(displaystring, "xl 8 ", sizeof(displaystring));
 
 	line = 1;
 	while(fgets(buf, 256, file)) {
@@ -367,7 +357,7 @@ char *GetNews(void) {
 
 		if(strlen(buf)) {
 			snprintf(add, sizeof(add), "yb %d string \"%s\" ", pos, buf);
-			strlcat(newsstr, add, DISPLAYSTRLEN);
+			strlcat(displaystring, add, sizeof(displaystring));
 		}
  
 		pos += 8;
@@ -376,19 +366,16 @@ char *GetNews(void) {
 		if(line == lines)
 			break;
 	}
-	strlcat(newsstr, add, DISPLAYSTRLEN);
+	strlcat(displaystring, add, sizeof(displaystring));
 
 	fclose(file);
 
-	return newsstr;
+	return displaystring;
 }
 
 char *GetCenterprint(edict_t *ent) {
-	char *centerprint;
 
-	centerprint = calloc(1, DISPLAYSTRLEN);
-	if (!centerprint)
-		return NULL;
+	displaystring[0] = '\0';
 
 	if(ent->centerprint && ent->centerprint2 && strlen(ent->centerprint2))
 		strlcpy(ent->centerprint, ent->centerprint2, sizeof(ent->centerprint));
@@ -413,19 +400,18 @@ char *GetCenterprint(edict_t *ent) {
 			c = d + 1;
 		}
 
-		strlcat(centerprint, "xv 0 ", DISPLAYSTRLEN);
+		strlcat(displaystring, "xv 0 ", sizeof(displaystring));
 		for(i = 0; i < lines; i++) {
 			if(strlen(line[i]))
-				snprintf(centerprint + strlen(centerprint), DISPLAYSTRLEN-strlen(centerprint), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
+				snprintf(displaystring + strlen(displaystring), sizeof(displaystring)-strlen(displaystring), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
 		}
 	}
 
-	return centerprint;
+	return displaystring;
 }
 
 int Layout_Update(edict_t *ent) {
-	char string[DISPLAYSTRLEN] = "";
-	char* c;
+	char string[1024] = "";
 	int size;
 
 	if(level.intermissiontime) {
@@ -464,39 +450,27 @@ int Layout_Update(edict_t *ent) {
 	}
 	
 	if(ent->layout & LAYOUT_CENTERPRINT) {
-		c = GetCenterprint(ent);
-		if (c) {
-			strlcat(string, c, DISPLAYSTRLEN);
-			free(c);
-		}
+		strlcat(string, GetCenterprint(ent), sizeof(string));
 	}
 
 	if((level.time > ent->motd_time || !(ent->layout & LAYOUT_MOTD)) && ent->layout & LAYOUT_NEWS && isnews) {
-		c = GetNews();
-		if (c) {
-			strlcat(string, c, DISPLAYSTRLEN);
-			free(c);
-		}
+		strlcat(string, GetNews(), sizeof(string));
 	} else if(ent->layout & LAYOUT_MOTD) {
-		c = GetMOTD();
-		if (c) {
-			strlcat(string, c, DISPLAYSTRLEN);
-			free(c);
-		}
+		strlcat(string, GetMOTD(), sizeof(string));
 	} else {
 		if(ent->layout & LAYOUT_CHASECAM && ent->client->chase_target)
-			snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), "xv 2 yb -68 string2 \"Chasing %s\" ", ent->client->chase_target->client->pers.netname);
+			snprintf(string + strlen(string), sizeof(string)-strlen(string), "xv 2 yb -68 string2 \"Chasing %s\" ", ent->client->chase_target->client->pers.netname);
 
 		if(ent->layout & LAYOUT_ID) {
 			if(ent->id_ent) {
 				if(ctf->value)
-					snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), "xv 2 yb -60 string2 \"Viewing %s (%s)\" ", 
+					snprintf(string + strlen(string), sizeof(string)-strlen(string), "xv 2 yb -60 string2 \"Viewing %s (%s)\" ", 
 						ent->id_ent->client->pers.netname, Info_ValueForKey(ent->id_ent->client->pers.userinfo, "skin"));
 				else
-					snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), "xv 2 yb -60 string2 \"Viewing %s\" ", ent->id_ent->client->pers.netname);
+					snprintf(string + strlen(string), sizeof(string)-strlen(string), "xv 2 yb -60 string2 \"Viewing %s\" ", ent->id_ent->client->pers.netname);
 			}
 			else
-				snprintf(string + strlen(string), DISPLAYSTRLEN-strlen(string), " ");
+				snprintf(string + strlen(string), sizeof(string)-strlen(string), " ");
 		}
 	}
 
@@ -517,14 +491,13 @@ char ad[5][64] = {
 
 char *Lithium_GetAd(int down) {
 	int i;
-	char *thead;
 
-	thead = calloc(1, 320);
+	displaystring[0] = '\0';
 
 	for(i = 0; i < 5; i++)
 		if(strlen(ad[i]))
-			strlcat(thead, va("xv 0 yv %d cstring \"%s\" ", down + i * 8, ad[i]), 320);
-	return thead;
+			strlcat(displaystring, va("xv 0 yv %d cstring \"%s\" ", down + i * 8, ad[i]), 320);
+	return displaystring;
 }
 
 void Lithium_SetAd(int num, char *str) {
@@ -540,7 +513,6 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 	edict_t		*cl_ent;
 	qboolean highlight;
 	int down;
-	char *c;
 
 //ZOID
 	if (ctf->value) {
@@ -606,11 +578,7 @@ int Lithium_Scoreboard(edict_t *ent, edict_t *killer) {
 	}
 
 	if(level.intermissiontime) {
-		c = Lithium_GetAd(down + ent->lclient->board_show * 10 + 32);
-		if (c) {
-			strlcat(string, c, sizeof(string));
-			free(c);
-		}
+		strlcat(string, Lithium_GetAd(down + ent->lclient->board_show * 10 + 32), sizeof(string));
 	}
 	else {
 		if(countclients() > ent->lclient->board_show)
