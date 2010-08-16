@@ -1,5 +1,6 @@
 // g_utils.c -- misc utility functions for game module
 
+#include <stdio.h>
 #include "g_local.h"
 
 
@@ -562,8 +563,10 @@ size_t strlcat(char *dest, char *src, size_t n) {
 		strncat(dest, src, free);
 
 #ifdef STRL_DEBUG
-	if (ret >= n)
-		Com_Printf ("strlcat: buffer overflow avoided (%i >= %i)\n", ret, n);
+	if (ret >= n) {
+		fprintf(stdout, "strlcat: buffer overflow avoided (%zd >= %zd)\n", ret, n);
+		fflush(stdout);
+	}
 #endif
 
 	return ret;
@@ -584,8 +587,10 @@ size_t strlcpy(char *dest, char *src, size_t n) {
 	*(dest+n-1) = '\0';
 
 #ifdef STRL_DEBUG
-	if (ret >= n)
-		Com_Printf ("strlcpy: buffer overflow avoided (%i >= %i)\n", ret, n);
+	if (ret >= n) {
+		fprintf(stdout, "strlcpy: buffer overflow avoided (%zd >= %zd)\n", ret, n);
+		fflush(stdout);
+	}
 #endif
 
 	return ret;
