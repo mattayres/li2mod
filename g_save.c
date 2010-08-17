@@ -193,7 +193,7 @@ void InitGame (void)
 	gi.cvar("gamename", "", CVAR_SERVERINFO | CVAR_LATCH);
 	{
 		char buf[64];
-		sprintf(buf, "Lithium II v%s", lithium_version);
+		snprintf(buf, sizeof(buf), "Lithium II v%s", lithium_version);
 	gi.cvar_set("gamename", buf);
 	}
 	//WF
@@ -498,7 +498,7 @@ void WriteGame (char *filename, qboolean autosave)
 		gi.error ("Couldn't open %s", filename);
 
 	memset (str, 0, sizeof(str));
-	strcpy (str, __DATE__);
+	strlcpy (str, __DATE__, sizeof(str));
 	fwrite (str, sizeof(str), 1, f);
 
 	game.autosaved = autosave;
