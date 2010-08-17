@@ -421,7 +421,7 @@ int Layout_Update(edict_t *ent) {
 	int size;
 
 	if(level.intermissiontime) {
-		if(ent->layout_update) {
+		if ((ent->layout_update) && !(ent->layout & LAYOUT_MENU)) {
 			size = Lithium_Scoreboard(ent, NULL);
 			gi.unicast(ent, true);
 			ent->layout_update = false;
@@ -431,7 +431,7 @@ int Layout_Update(edict_t *ent) {
 	}
 
 	if(!ent->layout_update) {
-		if(ent->layout & LAYOUT_SCORES && !(level.framenum & 15)) {
+		if(ent->layout & LAYOUT_SCORES && !(level.framenum & 15) && !(ent->layout & LAYOUT_MENU)) {
 			size = Lithium_Scoreboard(ent, ent->enemy);
 			gi.unicast(ent, false);
 			return size;
