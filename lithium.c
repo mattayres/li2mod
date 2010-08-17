@@ -264,6 +264,8 @@ void Lithium_BeginIntermission(void) {
 		if(size > ent->update_size)
 			ent->update_size = size;
 		ent->update_frame = level.framenum + 1;
+		if (ent->menu)
+			Menu_Destroy(ent);
 	}
 
 	if(strlen(intermission_sound->string))
