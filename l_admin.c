@@ -103,9 +103,9 @@ qboolean Admin_Validate(edict_t *ent) {
 		if(c) {
 			*c = 0;
 			
-			strcpy(username, buf);
+			strlcpy(username, buf, sizeof(username));
 			if(username[0] == '\"' && username[strlen(username) - 1] == '\"') {
-				strcpy(username, username + 1);
+				strlcpy(username, username + 1, sizeof(username));
 				username[strlen(username) - 1] = 0;
 			}
 
@@ -113,7 +113,7 @@ qboolean Admin_Validate(edict_t *ent) {
 			sscanf(c, "%s %d %s", ipmask, &access, password);
 		}
 		else {
-			strcpy(username, "*");
+			strlcpy(username, "*", sizeof(username));
 			sscanf(buf, "%s %d %s", ipmask, &access, password);
 		}
 
@@ -330,7 +330,7 @@ void Admin_Kick(edict_t *ent) {
 		cl_ent = g_edicts + 1 + i;
 		if(cl_ent->inuse && cl_ent->client) {
 			static char cmd[MAX_CLIENTS][8];
-			sprintf(cmd[i], "_ak %d", i);
+			snprintf(cmd[i], sizeof(cmd[i]), "_ak %d", i);
 			Menu_AddLine(ent, MENU_CMD, 0, cl_ent->client->pers.netname, cmd[i]);
 		}
 	}
@@ -343,7 +343,7 @@ extern qboolean resetqueue;
 void Admin_MapN(edict_t *ent) {
 	char buf[80];
 	Lithium_ExitLevel();
-	sprintf(buf, "gamemap %s\n", gi.argv(1));
+	snprintf(buf, sizeof(buf), "gamemap %s\n", gi.argv(1));
 	resetqueue = true;
 	gi.AddCommandString(buf);
 }
@@ -378,21 +378,21 @@ void Admin_MapPick(edict_t *ent) {
 	if(!Admin_Access(ent, admin_map))
 		return;
 
-	sprintf(buf[0], "Map: %s", gi.argv(1));
+	snprintf(buf[0], sizeof(buf[0]), "Map: %s", gi.argv(1));
 
 	Menu_Create(ent, 4, 18);
 	Menu_Title(ent, buf[0]);
 
-	sprintf(buf[1], "_amn %s", gi.argv(1));
+	snprintf(buf[1], sizeof(buf[1]), "_amn %s", gi.argv(1));
 	Menu_AddLine(ent, MENU_CMD, 0, "Change now!", buf[1]);
 
-	sprintf(buf[2], "_ami %s", gi.argv(1));
+	snprintf(buf[2], sizeof(buf[2]), "_ami %s", gi.argv(1));
 	Menu_AddLine(ent, MENU_CMD, 0, "Intermission first", buf[2]);
 
-	sprintf(buf[3], "_amw %s", gi.argv(1));
+	snprintf(buf[3], sizeof(buf[3]), "_amw %s", gi.argv(1));
 	Menu_AddLine(ent, MENU_CMD, 0, "Wait until map over", buf[3]);
 
-//	sprintf(buf[4], "map %s", gi.argv(1));
+//	snprintf(buf[4], sizeof(buf[4]), "map %s", gi.argv(1));
 //	Menu_AddLine(ent, MENU_SVCMD, 0, "Upgrade", buf[4]);
 
 	Menu_CancelFunc(ent, Admin_Map);
@@ -458,14 +458,14 @@ void Admin_Ban(edict_t *ent) {
 	else
 		cmd = gi.argv(2);
 
-	strcpy(arg, gi.args());
+	strlcpy(arg, gi.args(), sizeof(arg));
 	c = strchr(arg, ' ');
 	if(c)
-		strcpy(arg, c + 1);
+		strlcpy(arg, c + 1, sizeof(arg));
 	if(!ent) {
 		c = strchr(arg, ' ');
 		if(c)
-			strcpy(arg, c + 1);
+			strlcpy(arg, c + 1, sizeof(arg));
 	}
 
 	file = fopen(file_gamedir(banlist->string), "rt");
@@ -481,7 +481,8 @@ void Admin_Ban(edict_t *ent) {
 			strip(buf);
 			if(strlen(buf) >= 32)
 				buf[31] = 0;
-			strcpy(ban[bans++], buf);
+			strlcpy(ban[bans], buf, sizeof(ban[bans]));
+			bans++;
 		}
 		fclose(file);
 	}
@@ -491,12 +492,13 @@ void Admin_Ban(edict_t *ent) {
 			gi.cprintf(ent, PRINT_HIGH, "Too many bans already.\n");
 			return;
 		}
-		strcpy(ban[bans++], arg);
+		strlcpy(ban[bans], arg, sizeof(ban[bans]));
+		bans++;
 		add = 1;
 	}
 	else if(!stricmp(cmd, "delete") || !stricmp(cmd, "del")) {
 		for(i = 0; i < bans; i++) {
-			strcpy(buf, ban[i]);
+			strlcpy(buf, ban[i], sizeof(buf));
 			c = strchr(buf, ' ');
 			if(!c)
 				c = strchr(buf, '\t');
@@ -523,7 +525,8 @@ void Admin_Ban(edict_t *ent) {
 			if(!cl_ent->inuse)
 				continue;
 			if(!stricmp(arg, cl_ent->client->pers.netname)) {
-				sprintf(ban[bans++], "%d.%d.%d.%d", cl_ent->lclient->ip[0], cl_ent->lclient->ip[1], cl_ent->lclient->ip[2], cl_ent->lclient->ip[3]);
+				snprintf(ban[bans], sizeof(ban[bans]), "%d.%d.%d.%d", cl_ent->lclient->ip[0], cl_ent->lclient->ip[1], cl_ent->lclient->ip[2], cl_ent->lclient->ip[3]);
+				bans++;
 				add = 1;
 			}
 		}
@@ -579,7 +582,7 @@ void Admin_BanMenu(edict_t *ent) {
 		cl_ent = g_edicts + 1 + i;
 		if(cl_ent->inuse && cl_ent->client) {
 			static char cmd[MAX_CLIENTS][32];
-			sprintf(cmd[i], "ban name %s;menu", cl_ent->client->pers.netname);
+			snprintf(cmd[i], sizeof(cmd[i]), "ban name %s;menu", cl_ent->client->pers.netname);
 			Menu_AddLine(ent, MENU_CMD, 0, cl_ent->client->pers.netname, cmd[i]);
 		}
 	}
