@@ -55,9 +55,9 @@ trak_time_t GetTime(void) {
 }
 
 void FragTrak_InitLevel(void) {
-	strncpy(trak_header.magic, "TRAK", 4);
+	strlcpy(trak_header.magic, "TRAK", 5);
 	trak_header.version = 1;
-	strcpy(trak_header.mapname, level.mapname);
+	strlcpy(trak_header.mapname, level.mapname, sizeof(trak_header.mapname));
 	trak_header.begin = GetTime();
 	trak_header.traks = 0;
 	trak_header.frags = 0;
@@ -99,7 +99,7 @@ void FragTrak_Save(void) {
 		}
 	}
 
-	sprintf(filename, "fragtrak\\%02d%02d%02d.trk", trak_header.begin.hour,
+	snprintf(filename, sizeof(filename), "fragtrak\\%02d%02d%02d.trk", trak_header.begin.hour,
 		trak_header.begin.minute, trak_header.begin.second);
 
 	file = fopen(filename, "wb");
@@ -110,7 +110,7 @@ void FragTrak_Save(void) {
 }
 
 void FragTrak_ClientBegin(edict_t *ent) {
-	strcpy(trak[trak_header.traks].netname, ent->client->pers.netname);
+	strlcpy(trak[trak_header.traks].netname, ent->client->pers.netname, sizeof(trak[trak_header.traks].netname));
 	trak[trak_header.traks].begin = level.time;
 	trak[trak_header.traks].end = 0;
 	trak_ent[trak_header.traks] = ent;
