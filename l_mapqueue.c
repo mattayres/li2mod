@@ -51,13 +51,13 @@ void Mapqueue_InitGame(void) {
 void Mapqueue_InitLevel(void) {
 	if(strlen(start_cfg)) {
 		gi.AddCommandString(va("exec %s\n", start_cfg));
-		strcpy(start_cfg, "");
+		start_cfg[0] = '\0';
 	}
 }
 
 void Mapqueue_Override(char *mapname) {
 	static char static_mapname[MAX_MAPNAME];
-	strncpy(static_mapname, mapname, sizeof(static_mapname) - 1);
+	strlcpy(static_mapname, mapname, sizeof(static_mapname));
 	override_map = static_mapname;
 }
 
@@ -67,7 +67,7 @@ edict_t *Mapqueue_EndDMLevel(void) {
 
 	if(strlen(end_cfg)) {
 		gi.AddCommandString(va("exec %s\n", end_cfg));
-		strcpy(end_cfg, "");
+		end_cfg[0] = '\0';
 	}
 
 	if(override_map) {
@@ -95,36 +95,34 @@ void Mapqueue_SplitLine(char *buf, char *map, char *desc, char *start, char *end
 	char *c, tmp[256];
 
 	if(desc)
-		strcpy(desc, "");
+		*desc = '\0';
 	if(start)
-		strcpy(start, "");
+		*start = '\0';
 	if(end)
-		strcpy(end, "");
+		*end = '\0';
 
 	c = strchr(buf, ' ');
 	if(!c)
 		c = strchr(buf, '\t');
 	if(!c) {
 		if(map)
-			strcpy(map, buf);
+			strlcpy(map, buf, MAX_MAPNAME);
 		return;
 	}
 	if(map) {
-		strncpy(map, buf, c - buf);
-		map[c - buf] = 0;
+		strlcpy(map, buf, c - buf + 1);
 	}
 
 	c = strchr(buf, '\"');
 	if(!c)
 		return;
-	strcpy(tmp, c + 1);
+	strlcpy(tmp, c + 1, sizeof(tmp));
 	c = strchr(tmp, '\"');
 	if(desc) {
-		strncpy(desc, tmp, c - tmp);
-		desc[c - tmp] = 0;
+		strlcpy(desc, tmp, c - tmp + 1);
 	}
 
-	strcpy(tmp, c + 2);
+	strlcpy(tmp, c + 2, sizeof(tmp));
 	if(start && end)
 		sscanf(tmp, "%s %s", start, end);
 }
@@ -160,8 +158,8 @@ char *Mapqueue_GetMapName(void) {
 	if(!first->value && (resetqueue || strcmp(level.mapname, lastmap) || maps != lastmaps || strcmp(mapqueue->string, lastmapqueue)))
 		newlist = true;
 
-	strcpy(lastmapqueue, mapqueue->string);
-	strcpy(lastmap, level.mapname);
+	strlcpy(lastmapqueue, mapqueue->string, sizeof(lastmapqueue));
+	strlcpy(lastmap, level.mapname, sizeof(lastmap));
 	lastmaps = maps;
 
 	if(newlist) {
@@ -254,10 +252,10 @@ void Mapqueue_Menu(edict_t *ent, char *cmd) {
 		Mapqueue_SplitLine(buf, map, desc, NULL, NULL);
 
 		if(strlen(desc))
-			strcpy(c1[i], desc);
+			strlcpy(c1[i], desc, sizeof(c1[i]));
 		else
-			strcpy(c1[i], map);
-		sprintf(c2[i], "%s %s", cmd, map);
+			strlcpy(c1[i], map, sizeof(c1[i]));
+		snprintf(c2[i], sizeof(c2[i]), "%s %s", cmd, map);
 
 		Menu_AddLine(ent, MENU_CMD, 0, c1[i], c2[i]);
 
