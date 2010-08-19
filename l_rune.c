@@ -106,7 +106,7 @@ void Rune_Reset(void) {
 void Rune_RunFrame(void) {
 	edict_t *ent;
 	int i, j, lowest;
-	static counter = -10;
+	static int counter = -10;
 
 	// only check once per second
 	if(counter++ < 10)
@@ -368,11 +368,11 @@ int Rune_HasRegen(edict_t *player) {
 void Rune_RemoveAll(void) {
 	edict_t *ent;
 
-	while(ent = G_Find(NULL, FOFS(classname), "rune"))
+	while((ent = G_Find(NULL, FOFS(classname), "rune")))
 		G_FreeEdict(ent);
 
 	ent = NULL;
-	while(ent = G_Find(ent, FOFS(classname), "player"))
+	while((ent = G_Find(ent, FOFS(classname), "player")))
 		ent->rune = 0;
 }
 
