@@ -603,14 +603,14 @@ qboolean LNet_ClientCommand(edict_t *ent) {
 			gi.cprintf(ent, 4, "*** Need to specify a channel name\n");
 			return true;
 		}
-		strcpy(ent->lclient->chan, gi.argv(1));
+		strlcpy(ent->lclient->chan, gi.argv(1), sizeof(ent->lclient->chan));
 		Net_Sendf(net_sock, "join" DELIM "%d" DELIM "%s", ent->lclient->id, gi.argv(1));
 	}
 	else if(!Q_stricmp(cmd, ".leave") || !Q_stricmp(cmd, ".l")) {
 		if(ent->lclient->chan_id) {
 			Net_Sendf(net_sock, "leave" DELIM "%d" DELIM "*", ent->lclient->id);
 			ent->lclient->chan_id = 0;
-			strcpy(ent->lclient->chan, "");
+			strlcpy(ent->lclient->chan, "", sizeof(ent->lclient->chan));
 		}
 		else
 			gi.cprintf(ent, 4, "*** You are not in a channel\n");
@@ -625,17 +625,17 @@ qboolean LNet_ClientCommand(edict_t *ent) {
 	else if(cmd[0] == '.') {
 		char buf[BUF_LEN];
 		if(strlen(gi.args()))
-			sprintf(buf, "%s %s", gi.argv(0), gi.args());
+			snprintf(buf, sizeof(buf), "%s %s", gi.argv(0), gi.args());
 		else
-			strcpy(buf, gi.argv(0));
+			strlcpy(buf, gi.argv(0), sizeof(buf));
 		Net_Sendf(net_sock, "cmd" DELIM "%d" DELIM "%s", ent->lclient->id, buf);
 	}
 	else if(ent->lclient->chan_id) {
 		char buf[BUF_LEN];
 		if(strlen(gi.args()))
-			sprintf(buf, "%s %s", gi.argv(0), gi.args());
+			snprintf(buf, sizeof(buf), "%s %s", gi.argv(0), gi.args());
 		else
-			strcpy(buf, gi.argv(0));
+			strlcpy(buf, gi.argv(0), sizeof(buf));
 		Net_Sendf(net_sock, "chat" DELIM "%d" DELIM "%s", ent->lclient->id, buf);
 	}
 	else
