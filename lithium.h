@@ -61,8 +61,8 @@ struct lclient_s {
 	float kick_say_time;
 };
 
-#define MIN(x, y) (x < y ? x : y)
-#define MAX(x, y) (x > y ? x : y)
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 #define NUM_RUNES 5
 
