@@ -27,6 +27,8 @@
 #define MENU_X 32
 #define MENU_Y 32
 
+static char MenuLine[80];
+
 void Menu_Create(edict_t *ent, int startline, int endline) {
 	if(ent->menu)
 		Menu_Destroy(ent);
@@ -92,11 +94,10 @@ void Menu_AddText(edict_t *ent, int line, char *format, ...) {
 	char buf[80];
 
 	va_start(argptr, format);
-	vsprintf(buf, format, argptr);
+	vsnprintf(buf, sizeof(buf), format, argptr);
 	va_end(argptr);
 
-	text = (char *)malloc(strlen(buf) + 1);
-	strcpy(text, buf);
+	text = (char *)strdup(buf);
 
 	Menu_AddLine(ent, MENU_TEXT, line, text, "l");
 	ent->menu->lastline->textp = true;
@@ -135,7 +136,6 @@ void Menu_Destroy(edict_t *ent) {
 #define MARGIN_X 16
 
 char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
-	static char line[80];
 	char right[20] = "";
 	char string[40];
 	char format[40];
@@ -171,7 +171,7 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 			}
 
 			if(menu->editing && sel)
-				strcpy(right, menu->edit);
+				strlcpy(right, menu->edit, sizeof(right));
 			else if(!menu->editing)
 				show = true;
 			else if(menu->editing && !sel && menuline != menu->sel)
@@ -185,10 +185,10 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 						before++;
 					while(*c++)
 						after++;
-					sprintf(right, "%*.*f", before, after, value);
+					snprintf(right, sizeof(right), "%*.*f", before, after, value);
 				}
 				else
-					sprintf(right, "%*d", strlen(edit), (int)value);
+					snprintf(right, sizeof(right), "%*d", strlen(edit), (int)value);
 			}
 			else if(strchr(edit, ':')) {
 				int f = 0, field = (int)value;
@@ -199,9 +199,9 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 					if(f == field) {
 						d = strchr(c, ':');
 						if(d)
-							strncpy(right, c, d - c);
+							strlcpy(right, c, MIN(sizeof(right), d - c + 1));
 						else
-							strcpy(right, c);
+							strlcpy(right, c, sizeof(right));
 					}
 					c = strchr(c, ':');
 					f++;
@@ -209,9 +209,9 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 			}
 			else if(edit[0] == '^') {
 				if(value)
-					strcpy(right, "On");
+					strlcpy(right, "On", sizeof(right));
 				else
-					strcpy(right, "Off");
+					strlcpy(right, "Off", sizeof(right));
 			}
 		}
 	}
@@ -219,21 +219,21 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 		colored = true;
 
 	if(strlen(right))
-		sprintf(string, "%-*s%s", 24 - strlen(right), menuline->text, right);
+		snprintf(string, sizeof(string), "%-*s%s", 24 - strlen(right), menuline->text, right);
 	else
-		strcpy(string, menuline->text);
+		strlcpy(string, menuline->text, sizeof(string));
 
 	if(sel) {
-		strcpy(format, string);
-		sprintf(string, "> %-24s <", format);
+		strlcpy(format, string, sizeof(format));
+		snprintf(string, sizeof(string), "> %-24s <", format);
 		x -= 16;
 		colored = true;
 	}
 
-	sprintf(line, "xv %d yv %d string%s \"%s\" ", MENU_X + ent->menu->xoff + x + 2, 
+	snprintf(MenuLine, sizeof(MenuLine), "xv %d yv %d string%s \"%s\" ", MENU_X + ent->menu->xoff + x + 2, 
 		MENU_Y + ent->menu->yoff + menuline->line * 8, colored ? "2" : "", string);
 
-	return line;
+	return MenuLine;
 }
 
 qboolean Menu_IsLineUsed(menu_t *menu, int num) {
@@ -272,12 +272,12 @@ int Menu_Draw(edict_t *ent) {
 		menuline = menuline->next;
 	}
 
-	sprintf(string, "xv %d yv %d picn inventory ", MENU_X, MENU_Y);
+	snprintf(string, sizeof(string), "xv %d yv %d picn inventory ", MENU_X, MENU_Y);
 
 	menuline = ent->menu->firstline;
 	while(menuline) {
 		if(menuline->line) {
-			strcpy(string + strlen(string), Menu_GetLine(ent, menuline, false));
+			strlcat(string, Menu_GetLine(ent, menuline, false), sizeof(string));
 			if(ent->menu->sel && !ent->menu->sel->line && menuline->selectable)
 				ent->menu->sel = menuline;
 		}
@@ -285,7 +285,7 @@ int Menu_Draw(edict_t *ent) {
 	}
 
 	if(page > ent->menu->page)
-		sprintf(string + strlen(string), "xv %d yv %d string ... ", 
+		snprintf(string + strlen(string), sizeof(string)-strlen(string), "xv %d yv %d string ... ", 
 			MENU_X + ent->menu->xoff + 16 + 2, MENU_Y + ent->menu->yoff + ent->menu->endline * 8);
 
 	gi.WriteByte(0x0D);
@@ -456,7 +456,7 @@ void Menu_Use(edict_t *ent) {
 				int x = lvar->value + 1;
 				if(x >= fields)
 					x = 0;
-				sprintf(buf, "%d", x);
+				snprintf(buf, sizeof(buf), "%d", x);
 				gi.cvar_set(lvar->cvar->name, buf);
 			}
 			else if(lvar->edit[0] == '^') {
@@ -544,11 +544,11 @@ void Menu_EditBegin(edict_t *ent) {
 
 	if(ent->menu->sel->type == MENU_LVAR) {
 		lvar_t *lvar = (lvar_t *)ent->menu->sel->data;
-		strcpy(ent->menu->edit, lvar->edit);
+		strlcpy(ent->menu->edit, lvar->edit, sizeof(ent->menu->edit));
 	}
 	else if(ent->menu->sel->type == MENU_PVAR) {
 		pvar_t *pvar = (pvar_t *)pvar_find(ent, ent->menu->sel->data);
-		strcpy(ent->menu->edit, pvar->edit);
+		strlcpy(ent->menu->edit, pvar->edit, sizeof(ent->menu->edit));
 	}
 	else
 		return;
