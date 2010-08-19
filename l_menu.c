@@ -156,8 +156,8 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 	if(menuline->selectable) {
 		if(menuline->type == MENU_LVAR || menuline->type == MENU_PVAR) {
 			qboolean show = false;
-			char *edit;
-			float value;
+			char *edit = NULL;
+			float value = 0;
 
 			if(menuline->type == MENU_LVAR) {
 				lvar_t *lvar = (lvar_t *)menuline->data;
@@ -188,7 +188,7 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 					snprintf(right, sizeof(right), "%*.*f", before, after, value);
 				}
 				else
-					snprintf(right, sizeof(right), "%*d", strlen(edit), (int)value);
+					snprintf(right, sizeof(right), "%*d", (int)strlen(edit), (int)value);
 			}
 			else if(strchr(edit, ':')) {
 				int f = 0, field = (int)value;
@@ -219,7 +219,7 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 		colored = true;
 
 	if(strlen(right))
-		snprintf(string, sizeof(string), "%-*s%s", 24 - strlen(right), menuline->text, right);
+		snprintf(string, sizeof(string), "%-*s%s", 24 - (int)strlen(right), menuline->text, right);
 	else
 		strlcpy(string, menuline->text, sizeof(string));
 
@@ -314,7 +314,7 @@ int Menu_UpdateLine(edict_t *ent) {
 }
 
 int Menu_Update(edict_t *ent) {
-	int len;
+	int len = 0;
 
 	if(!ent->menu)
 		return 0;
