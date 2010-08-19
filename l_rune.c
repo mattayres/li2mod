@@ -400,17 +400,17 @@ qboolean Rune_Give(edict_t *ent, char *name) {
 	return true;
 }
 
-void CTFSay_Team_Rune(edict_t *who, char *buf) {
+void CTFSay_Team_Rune(edict_t *who, char *buf, unsigned int buflen) {
 	if(who->rune & RUNE_RESIST)
-		strcpy(buf, "the Resist rune");
+		strlcpy(buf, "the Resist rune", buflen);
 	else if(who->rune & RUNE_STRENGTH)
-		strcpy(buf, "the Strength rune");
+		strlcpy(buf, "the Strength rune", buflen);
 	else if(who->rune & RUNE_HASTE)
-		strcpy(buf, "the Haste rune");
+		strlcpy(buf, "the Haste rune", buflen);
 	else if(who->rune & RUNE_REGEN)
-		strcpy(buf, "the Regen rune");
+		strlcpy(buf, "the Regen rune", buflen);
 	else if(who->rune & RUNE_VAMPIRE)
-		strcpy(buf, "the Vampire rune");
+		strlcpy(buf, "the Vampire rune", buflen);
 	else
-		strcpy(buf, "no rune");
+		strlcpy(buf, "no rune", buflen);
 }
