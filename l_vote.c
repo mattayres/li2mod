@@ -163,7 +163,7 @@ void Vote_Menu(edict_t *ent) {
 void Vote_RunFrame(void) {
 	int i;
 	edict_t *cl_ent;
-	static last_time;
+	static int last_time;
 	qboolean stop = false;
 	qboolean pass = false;
 	qboolean timeup = false;
