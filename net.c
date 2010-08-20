@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "net.h"
 #include "strl.h"
 
@@ -92,8 +93,6 @@ int Net_SetNonBlocking(int sock) {
 
 int Net_Listen(int port) {
 	int i;
-	int l = sizeof(struct linger);
-	static char argp = 1;
 
 #ifdef FreeBSD
 	struct rlimit rlimit;
@@ -138,10 +137,9 @@ void Net_StopListen(void) {
 
 int Net_Check(void) {
 	int i;
-	int addrlen = sizeof(struct sockaddr_in);
+	socklen_t addrlen = sizeof(struct sockaddr_in);
 	int sock;
 	static int nextfree = -1;
-	static char argp = 1;
 
 	if(nextfree == -1) {
 		for(i = 0; i < MAX_LISTEN; i++)
@@ -239,7 +237,6 @@ int Net_Recv(int sock, char *buf, int len) {
 	char rbuf[BUF_LEN];
 	char *r;
 	int rlen;
-	int chunk = 0;
 	int i = 0;
 	int err;
 
