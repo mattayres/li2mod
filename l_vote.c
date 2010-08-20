@@ -53,7 +53,7 @@ void acprintf(int level, char *format, ...) {
 	char text[1024];
 
 	va_start(argptr, format);
-	vsprintf(text, format, argptr);
+	vsnprintf(text, sizeof(text), format, argptr);
 	va_end(argptr);
 
 	for(i = 0; i < game.maxclients; i++) {
@@ -255,7 +255,7 @@ void Vote_Start2(edict_t *ent) {
 	voting = true;
 	vote_ent = ent;
 	vote_time = level.time;
-	strcpy(vote_map, ent->lclient->vote_map);
+	strlcpy(vote_map, ent->lclient->vote_map, sizeof(vote_map));
 	ent->lclient->vote_tries++;
 
 	for(i = 0; i < game.maxclients; i++) {
@@ -292,7 +292,7 @@ void Vote_Start(edict_t *ent) {
 		return;
 	}
 
-	strcpy(ent->lclient->vote_map, gi.argv(2));
+	strlcpy(ent->lclient->vote_map, gi.argv(2), sizeof(ent->lclient->vote_map));
 
 	if(!mapvote_instant->value) {
 		vote_instant = false;
