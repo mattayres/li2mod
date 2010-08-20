@@ -234,7 +234,7 @@ void LNet_Recv(char *buf) {
 
 //	gi.dprintf("*** Master server message: '%s'\n", buf);
 
-	Split(buf, cmd, param);
+	Split(buf, cmd, sizeof(cmd), param, sizeof(param));
 
 	if(!strcmp(buf, "ver bad")) {
 		gi.dprintf("*** Protocol version different on lmaster server, disconnecting\n", buf);
@@ -267,7 +267,7 @@ void LNet_Recv(char *buf) {
 	else if(!strcmp(cmd, "join")) {
 		char idstr[BUF_LEN], chanstr[BUF_LEN];
 		lclient_t *lclient;
-		Split(param, idstr, chanstr);
+		Split(param, idstr, sizeof(idstr), chanstr, sizeof(chanstr));
 		lclient = get_lclient(atoi(idstr));
 		if(lclient)
 			lclient->chan_id = atoi(chanstr);
@@ -277,7 +277,7 @@ void LNet_Recv(char *buf) {
 		char chanstr[BUF_LEN], msg[BUF_LEN];
 		int chan_id;
 
-		Split(param, chanstr, msg);
+		Split(param, chanstr, sizeof(chanstr), msg, sizeof(msg));
 
 		chan_id = atoi(chanstr);
 
@@ -293,7 +293,7 @@ void LNet_Recv(char *buf) {
 	else if(!strcmp(cmd, "discon")) {
 		char name[BUF_LEN], chan[BUF_LEN];
 
-		Split(param, name, chan);
+		Split(param, name, sizeof(name), chan, sizeof(chan));
 
 		for(i = 0; i < game.maxclients; i++) {
 			ent = g_edicts + 1 + i;
@@ -308,8 +308,8 @@ void LNet_Recv(char *buf) {
 		char chanstr[BUF_LEN], name[BUF_LEN], msg[BUF_LEN];
 		int chan_id;
 
-		Split(param, chanstr, param);
-		Split(param, name, msg);
+		Split(param, chanstr, sizeof(chanstr), param, sizeof(param));
+		Split(param, name, sizeof(name), msg, sizeof(msg));
 
 		chan_id = atoi(chanstr);
 		
@@ -327,8 +327,8 @@ void LNet_Recv(char *buf) {
 		lclient_t *lclient;
 		int id;
 
-		Split(param, idstr, param);
-		Split(param, name, msg);
+		Split(param, idstr, sizeof(idstr), param, sizeof(param));
+		Split(param, name, sizeof(name), msg, sizeof(msg));
 
 		ent = NULL;
 		id = atoi(idstr);
@@ -346,8 +346,8 @@ void LNet_Recv(char *buf) {
 		lclient_t *lclient;
 		int id;
 
-		Split(param, idstr, param);
-		Split(param, name, msg);
+		Split(param, idstr, sizeof(idstr), param, sizeof(param));
+		Split(param, name, sizeof(name), msg, sizeof(msg));
 
 		ent = NULL;
 		id = atoi(idstr);
@@ -365,7 +365,7 @@ void LNet_Recv(char *buf) {
 		lclient_t *lclient;
 		int id;
 
-		Split(param, idstr, msg);
+		Split(param, idstr, sizeof(idstr), msg, sizeof(msg));
 
 		ent = NULL;
 		id = atoi(idstr);
@@ -406,7 +406,7 @@ void LNet_Recv(char *buf) {
 	}
 
 	else if(!strcmp(cmd, "redir")) {
-		Split(param, redir_addr, redir_port);
+		Split(param, redir_addr, sizeof(redir_addr), redir_port, sizeof(redir_port));
 
 		gi.dprintf("*** Lmaster server redirection\n");
 
@@ -462,7 +462,7 @@ void LNet_Recv(char *buf) {
 		char idstr[BUF_LEN], msg[BUF_LEN];
 		lclient_t *lclient;
 
-		Split(param, idstr, msg);
+		Split(param, idstr, sizeof(idstr), msg, sizeof(msg));
 
 		lclient = get_lclient(atoi(idstr));
 		if(lclient)
@@ -474,7 +474,7 @@ void LNet_Recv(char *buf) {
 
 	else if(!strcmp(cmd, "setad")) {
 		char num[BUF_LEN], str[BUF_LEN];
-		Split(param, num, str);
+		Split(param, num, sizeof(num), str, sizeof(str));
 		Lithium_SetAd(atoi(num), str);
 	}
 

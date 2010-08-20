@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "net.h"
+#include "strl.h"
 
 #define MAX_LISTEN 512
 #define MAX_BACKLOG 16
@@ -209,7 +210,7 @@ int Net_Sendf(int sock, char *format, ...) {
 	char buf[512];
 
 	va_start(argptr, format);
-	vsprintf(buf, format, argptr);
+	vsnprintf(buf, sizeof(buf), format, argptr);
 	va_end(argptr);
 
 	return Net_Send(sock, buf);
@@ -253,7 +254,7 @@ int Net_Recv(int sock, char *buf, int len) {
 	r = recvbuf[i];
 	while(r < recvpos[i]) {
 		if(!*r) {
-			strcpy(buf, recvbuf[i]);
+			strlcpy(buf, recvbuf[i], sizeof(buf));
 			rlen = strlen(buf) + 1;
 			memcpy(recvbuf[i], r + 1, recvpos[i] - r);
 			recvpos[i] -= rlen;
@@ -358,7 +359,7 @@ char *Net_GetAddrStr(int sock) {
 	for(i = 0; i < MAX_LISTEN; i++) {
 		if(sock == rsock[i]) {
 			haddr = ntohl(raddr[i].sin_addr.s_addr);
-			sprintf(ip, "%d.%d.%d.%d", (haddr >> 24) & 0xff, (haddr >> 16) & 0xff, (haddr >> 8) & 0xff, haddr & 0xff);
+			snprintf(ip, sizeof(ip), "%d.%d.%d.%d", (haddr >> 24) & 0xff, (haddr >> 16) & 0xff, (haddr >> 8) & 0xff, haddr & 0xff);
 			return ip;
 		}
 	}
@@ -375,20 +376,20 @@ void Sys_Sleep(int msec) {
 #endif
 }
 
-void Split(char *msg, char *s1, char *s2) {
+void Split(char *msg, char *s1, unsigned int s1len, char *s2, unsigned int s2len) {
 	char *c;
 	char buf[BUF_LEN];
 
-	strcpy(buf, msg);
+	strlcpy(buf, msg, sizeof(buf));
 	c = (char *)strstr(buf, DELIM);
 	if(c) {
 		*c = 0;
-		strcpy(s1, buf);
-		strcpy(s2, c + 1);
+		strlcpy(s1, buf, s1len);
+		strlcpy(s2, c + 1, s2len);
 	}
 	else {
-		strcpy(s1, buf);
-		strcpy(s2, "");
+		strlcpy(s1, buf, s1len);
+		strlcpy(s2, "", s2len);
 	}
 }
 
@@ -450,7 +451,7 @@ void server(void) {
 
 				printf("packet data = '%s' (%d)\n", buf, len);
 
-				sprintf(snd, "you said: %s", buf);
+				snprintf(snd, sizeof(snd), "you said: %s", buf);
 				Net_Send(rsock[i], snd);
 			}
 		}
@@ -474,12 +475,12 @@ void client(char *host, char *msg) {
 		;
 
 	for(i = 0; i < 5; i++) {
-		strcpy(buf, msg);
+		strlcpy(buf, msg, sizeof(buf));
 		Net_Send(sock, buf);
 		printf("sent packet, data = '%s'.\n", buf);
 	}
 
-	strcpy(buf, "bye!");
+	strlcpy(buf, "bye!", sizeof(buf));
 	Net_Send(sock, buf);
 	printf("sent packet, data = '%s'.\n", buf);
 
