@@ -45,5 +45,5 @@ void StartTime(void);
 int GetTime(void);
 
 void Sys_Sleep(int msec);
-void Split(char *msg, char *s1, char *s2);
+void Split(char *msg, char *s1, unsigned int s1len, char *s2, unsigned int s2len);
 void wf_strlwr(char *str);
