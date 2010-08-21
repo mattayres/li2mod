@@ -26,8 +26,6 @@
 
 extern lvar_t *use_runes;
 
-static char displaystring[1024];
-
 void CTFSetIDView(edict_t *ent);
 
 void Lithium_SetStats(edict_t *self) {
@@ -257,6 +255,7 @@ char *GetMOTD(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256] = "";
+	static char motdstr[1024];
 
 	file = fopen(file_gamedir(motd->string), "rt");
 	lines = 0;
@@ -277,7 +276,7 @@ char *GetMOTD(void) {
 
 	pos = -60 - lines * 8;
 
-	strlcpy(displaystring, "xl 8 ", sizeof(displaystring));
+	strlcpy(motdstr, "xl 8 ", sizeof(motdstr));
 
 	line = 4;
 	if(file) {
@@ -293,7 +292,7 @@ char *GetMOTD(void) {
 
 			if(strlen(buf)) {
 				snprintf(add, sizeof(add), "yb %d string \"%s\" ", pos, buf);
-				strlcat(displaystring, add, sizeof(displaystring));
+				strlcat(motdstr, add, sizeof(motdstr));
 			}
  
 			pos += 8;
@@ -314,15 +313,15 @@ char *GetMOTD(void) {
 		"yb %d string \"http://quake2.lithium.com\" "
 		, pos, lithium_modname, pos + 8, pos + 16);
 
-	strlcat(displaystring, add, sizeof(displaystring));
+	strlcat(motdstr, add, sizeof(motdstr));
 #ifdef GIT_HASH
 	snprintf(add, sizeof(add),
 		"yb %d string \"git " GIT_HASH "\" "
 		, pos + 24);
-	strlcat(displaystring, add, sizeof(displaystring));
+	strlcat(motdstr, add, sizeof(motdstr));
 #endif
 
-	return displaystring;
+	return motdstr;
 }
 
 qboolean isnews = false;
@@ -332,6 +331,7 @@ char *GetNews(void) {
 	FILE *file;
 	char *c, buf[256];
 	char add[256];
+	static char newsstr[1024];
 
 	file = fopen(file_gamedir(news->string), "rt");
 
@@ -352,7 +352,7 @@ char *GetNews(void) {
 
 	pos = -60 - lines * 8;
 
-	strlcpy(displaystring, "xl 8 ", sizeof(displaystring));
+	strlcpy(newsstr, "xl 8 ", sizeof(newsstr));
 
 	line = 1;
 	while(fgets(buf, 256, file)) {
@@ -363,7 +363,7 @@ char *GetNews(void) {
 
 		if(strlen(buf)) {
 			snprintf(add, sizeof(add), "yb %d string \"%s\" ", pos, buf);
-			strlcat(displaystring, add, sizeof(displaystring));
+			strlcat(newsstr, add, sizeof(newsstr));
 		}
  
 		pos += 8;
@@ -372,16 +372,18 @@ char *GetNews(void) {
 		if(line == lines)
 			break;
 	}
-	strlcat(displaystring, add, sizeof(displaystring));
+	strlcat(newsstr, add, sizeof(newsstr));
 
 	fclose(file);
 
-	return displaystring;
+	return newsstr;
 }
 
 char *GetCenterprint(edict_t *ent) {
 
-	displaystring[0] = '\0';
+	static char centerprint[1024];
+
+	centerprint[0] = '\0';
 
 	if(ent->centerprint && ent->centerprint2 && strlen(ent->centerprint2))
 		strlcpy(ent->centerprint, ent->centerprint2, sizeof(ent->centerprint));
@@ -406,14 +408,14 @@ char *GetCenterprint(edict_t *ent) {
 			c = d + 1;
 		}
 
-		strlcat(displaystring, "xv 0 ", sizeof(displaystring));
+		strlcat(centerprint, "xv 0 ", sizeof(centerprint));
 		for(i = 0; i < lines; i++) {
 			if(strlen(line[i]))
-				snprintf(displaystring + strlen(displaystring), sizeof(displaystring)-strlen(displaystring), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
+				snprintf(centerprint + strlen(centerprint), sizeof(centerprint)-strlen(centerprint), "yv %d cstring \"%s\" ", (200 - lines * 8) / 2 + i * 8, line[i]);
 		}
 	}
 
-	return displaystring;
+	return centerprint;
 }
 
 int Layout_Update(edict_t *ent) {
@@ -497,13 +499,14 @@ char ad[5][64] = {
 
 char *Lithium_GetAd(int down) {
 	int i;
+	static char thead[320];
 
-	displaystring[0] = '\0';
+	thead[0] = '\0';
 
 	for(i = 0; i < 5; i++)
 		if(strlen(ad[i]))
-			strlcat(displaystring, va("xv 0 yv %d cstring \"%s\" ", down + i * 8, ad[i]), 320);
-	return displaystring;
+			strlcat(thead, va("xv 0 yv %d cstring \"%s\" ", down + i * 8, ad[i]), sizeof(thead));
+	return thead;
 }
 
 void Lithium_SetAd(int num, char *str) {
