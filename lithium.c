@@ -185,7 +185,7 @@ float end_time = 0;
 char *colorize(char *str) {
 	static char ret[128];
 	char *c = ret;
-	strncpy(ret, str, sizeof(ret) - 1);
+	strlcpy(ret, str, sizeof(ret));
 	while(*c)
 		*c++ += 128;
 	return ret;
@@ -396,7 +396,7 @@ void IP_Scan(char *ipstr, int ip[4]) {
 	char *c, buf[64];
 	int scan;
 
-	strncpy(buf, ipstr, sizeof(buf) - 1);
+	strlcpy(buf, ipstr, sizeof(buf));
 	buf[sizeof(buf) - 1] = 0;
 
 	// turn *'s into -1's
@@ -605,7 +605,7 @@ void Lithium_ClientBegin(edict_t *ent) {
 		ent->lclient->chan_id = 0;
 
 	info = Info_ValueForKey(ent->client->pers.userinfo, "channel");
-	strncpy(ent->lclient->chan, info, sizeof(ent->lclient->chan) - 1);
+	strlcpy(ent->lclient->chan, info, sizeof(ent->lclient->chan));
 	ent->lclient->chan[sizeof(ent->lclient->chan) - 1] = 0;
 
 	if(ent->id_state)
