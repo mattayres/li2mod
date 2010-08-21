@@ -1,9 +1,9 @@
 #include "g_local.h"
 #include "m_player.h"
 
-void ClientUserinfoChanged (edict_t *ent, char *userinfo);
+void ClientUserinfoChanged (edict_t *ent, char *userinfo, unsigned int uilen);
 //WF
-void ClientUserinfoChanged2 (edict_t *ent, char *userinfo);
+void ClientUserinfoChanged2 (edict_t *ent, char *userinfo, unsigned int uilen);
 //WF
 
 void SP_misc_teleporter_dest (edict_t *ent);
@@ -1176,8 +1176,8 @@ void PutClientInServer (edict_t *ent)
 		memcpy (userinfo, client->pers.userinfo, sizeof(userinfo));
 		InitClientPersistant (client);
 		//WF
-//		ClientUserinfoChanged (ent, userinfo);
-		ClientUserinfoChanged2 (ent, userinfo);
+//		ClientUserinfoChanged (ent, userinfo, sizeof(userinfo));
+		ClientUserinfoChanged2 (ent, userinfo, sizeof(userinfo));
 		//WF
 	}
 	else if (coop->value)
@@ -1196,7 +1196,7 @@ void PutClientInServer (edict_t *ent)
 		resp.coop_respawn.game_helpchanged = client->pers.game_helpchanged;
 		resp.coop_respawn.helpchanged = client->pers.helpchanged;
 		client->pers = resp.coop_respawn;
-		ClientUserinfoChanged (ent, userinfo);
+		ClientUserinfoChanged (ent, userinfo, sizeof(userinfo));
 		if (resp.score > client->pers.score)
 			client->pers.score = resp.score;
 	}
@@ -1446,7 +1446,7 @@ The game can override any of the settings in place
 (forcing skins or names, etc) before copying it off.
 ============
 */
-void ClientUserinfoChanged2 (edict_t *ent, char *userinfo)
+void ClientUserinfoChanged2 (edict_t *ent, char *userinfo, unsigned int uilen)
 {
 	char	*s;
 	int		playernum;
@@ -1459,12 +1459,12 @@ void ClientUserinfoChanged2 (edict_t *ent, char *userinfo)
 	// check for malformed or illegal info strings
 	if (!Info_Validate(userinfo))
 	{
-		strcpy (userinfo, "\\name\\badinfo\\skin\\male/grunt");
+		strlcpy (userinfo, "\\name\\badinfo\\skin\\male/grunt", uilen);
 	}
 
 	// set name
 	s = Info_ValueForKey (userinfo, "name");
-	strncpy (ent->client->pers.netname, s, sizeof(ent->client->pers.netname)-1);
+	strlcpy (ent->client->pers.netname, s, sizeof(ent->client->pers.netname));
 
 	// set spectator
 	s = Info_ValueForKey (userinfo, "spectator");
@@ -1511,11 +1511,11 @@ void ClientUserinfoChanged2 (edict_t *ent, char *userinfo)
 	}
 
 	// save off the userinfo in case we want to check something later
-	strncpy (ent->client->pers.userinfo, userinfo, sizeof(ent->client->pers.userinfo)-1);
+	strlcpy (ent->client->pers.userinfo, userinfo, sizeof(ent->client->pers.userinfo));
 }
 
-void ClientUserinfoChanged (edict_t *ent, char *userinfo) {
-	ClientUserinfoChanged2(ent, userinfo);
+void ClientUserinfoChanged (edict_t *ent, char *userinfo, unsigned int uilen) {
+	ClientUserinfoChanged2(ent, userinfo, uilen);
 	Lithium_MaxRate(ent);
 }
 
@@ -1597,8 +1597,8 @@ qboolean ClientConnect (edict_t *ent, char *userinfo)
 	}
 
 	//WF
-//	ClientUserinfoChanged (ent, userinfo);
-	ClientUserinfoChanged2 (ent, userinfo);
+//	ClientUserinfoChanged (ent, userinfo, MAX_INFO_STRING);
+	ClientUserinfoChanged2 (ent, userinfo, MAX_INFO_STRING);
 	//WF
 
 	if (game.maxclients > 1)
@@ -1606,7 +1606,7 @@ qboolean ClientConnect (edict_t *ent, char *userinfo)
 //		gi.dprintf ("%s connected\n", ent->client->pers.netname);
 	{
 		char *c, ipstr[32];
-		strcpy(ipstr, Info_ValueForKey(userinfo, "ip"));
+		strlcpy(ipstr, Info_ValueForKey(userinfo, "ip"), sizeof(ipstr));
 		c = strchr(ipstr, ':');
 		if(c)
 			*c = 0;
