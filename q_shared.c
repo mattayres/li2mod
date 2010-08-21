@@ -10,8 +10,6 @@ vec3_t vec3_origin = {0,0,0};
 #pragma optimize( "", off )
 #endif
 
-static char va_string[1024];
-
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
 {
 	float	m[3][3];
@@ -1034,12 +1032,13 @@ FIXME: make this buffer size safe someday
 char	*va(char *format, ...)
 {
 	va_list		argptr;
+	static char		string[1024];
 	
 	va_start (argptr, format);
-	vsnprintf (va_string, sizeof(va_string), format,argptr);
+	vsnprintf (string, sizeof(va_string), format,argptr);
 	va_end (argptr);
 
-	return va_string;	
+	return string;	
 }
 
 
