@@ -227,9 +227,9 @@ void SVCmd_WriteIP_f (void)
 	game = gi.cvar("game", "", 0);
 
 	if (!*game->string)
-		sprintf (name, "%s/listip.cfg", GAMEVERSION);
+		snprintf (name, sizeof(name), "%s/listip.cfg", GAMEVERSION);
 	else
-		sprintf (name, "%s/listip.cfg", game->string);
+		snprintf (name, sizeof(name), "%s/listip.cfg", game->string);
 
 	gi.cprintf (NULL, PRINT_HIGH, "Writing %s.\n", name);
 
@@ -289,7 +289,7 @@ void	ServerCommand (void)
 			ent = g_edicts + 1 + i;
 			if(ent->inuse) {
 				char stuff[80];
-				sprintf(stuff, "connect %s\n", gi.argv(2));
+				snprintf(stuff, sizeof(stuff), "connect %s\n", gi.argv(2));
 				stuffcmd(ent, stuff);
 				gi.dprintf("%s bounced to %s\n", ent->client->pers.netname, gi.argv(2));
 			}
