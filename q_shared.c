@@ -858,8 +858,7 @@ void COM_FileBase (char *in, char *out)
 	else
 	{
 		s--;
-		strncpy (out,s2+1, s-s2);
-		out[s-s2] = 0;
+		strlcpy (out,s2+1, s-s2+1);
 	}
 }
 
@@ -879,8 +878,7 @@ void COM_FilePath (char *in, char *out)
 	while (s != in && *s != '/')
 		s--;
 
-	strncpy (out,in, s-in);
-	out[s-in] = 0;
+	strlcpy (out,in, s-in+1);
 }
 
 
