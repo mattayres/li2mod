@@ -193,7 +193,7 @@ void InitGame (void)
 	gi.cvar("gamename", "", CVAR_SERVERINFO | CVAR_LATCH);
 	{
 		char buf[64];
-		snprintf(buf, sizeof(buf), "Lithium II v%s", lithium_version);
+		snprintf(buf, sizeof(buf), "%s", lithium_modname);
 	gi.cvar_set("gamename", buf);
 	}
 	//WF
