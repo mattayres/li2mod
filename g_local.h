@@ -801,6 +801,7 @@ void G_RunEntity (edict_t *ent);
 //
 void SaveClientData (void);
 void FetchClientEntData (edict_t *ent);
+void ExitLevel (void);
 
 //
 // g_chase.c
