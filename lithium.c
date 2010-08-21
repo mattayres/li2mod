@@ -1734,7 +1734,7 @@ void String_Crop(char *str) {
 	int l;
 
 	l = strlen(str)+1;
-	c = calloc(1, l);
+	c = gi.TagMalloc(l, TAG_GAME);
 	if (!c)
 		return;
 	strlcpy(c, str, l);
@@ -1742,7 +1742,7 @@ void String_Crop(char *str) {
 	while(*c != '\0' && (*c == ' ' || *c == '\t'))
 		c++;
 	strlcpy(str, c, l);
-	free(c);
+	gi.TagFree(c);
 
 	c = str + strlen(str) - 1;
 	while(c > str && (*c == ' ' || *c == '\t'))
