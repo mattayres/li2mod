@@ -253,7 +253,7 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 			j = strlen(entry);
 			if (stringlength + j > 1024)
 				break;
-			strcpy (string + stringlength, entry);
+			strlcpy (string + stringlength, entry, sizeof(string)-stringlength);
 			stringlength += j;
 		}
 
@@ -267,7 +267,7 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 		j = strlen(entry);
 		if (stringlength + j > 1024)
 			break;
-		strcpy (string + stringlength, entry);
+		strlcpy (string + stringlength, entry, sizeof(string)-stringlength);
 		stringlength += j;
 	}
 
@@ -346,7 +346,7 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 			j = strlen(entry);
 			if (stringlength + j > 1024)
 				break;
-			strcpy (string + stringlength, entry);
+			strlcpy (string + stringlength, entry, sizeof(string)-stringlength);
 			stringlength += j;
 		}
 
@@ -357,7 +357,7 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 		j = strlen(entry);
 		if (stringlength + j > 1024)
 			break;
-		strcpy (string + stringlength, entry);
+		strlcpy (string + stringlength, entry, sizeof(string)-stringlength);
 		stringlength += j;
 	}
 
