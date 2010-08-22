@@ -992,10 +992,16 @@ Swap_Init
 */
 void Swap_Init (void)
 {
-	byte	swaptest[2] = {1,0};
+	union
+	{
+			byte	b[2];
+			short	s;
+	} swaptest;
 
 // set the byte swapping variables in a portable manner	
-	if ( *(short *)swaptest == 1)
+    swaptest.b[0] = 1;
+    swaptest.b[1] = 0;
+	if ( swaptest.s == 1)
 	{
 		bigendien = false;
 		_BigShort = ShortSwap;
