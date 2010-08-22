@@ -1,26 +1,25 @@
 #include "g_local.h"
 #include "m_player.h"
 
-static char ct_value[512];
-
 static char *ClientTeam (edict_t *ent)
 {
 	char		*p;
+	static char	value[512];
 
-	ct_value[0] = 0;
+	value[0] = 0;
 
 	if (!ent->client)
-		return ct_value;
+		return value;
 
-	strlcpy(ct_value, Info_ValueForKey (ent->client->pers.userinfo, "skin"), sizeof(ct_value));
-	p = strchr(ct_value, '/');
+	strlcpy(value, Info_ValueForKey (ent->client->pers.userinfo, "skin"), sizeof(value));
+	p = strchr(value, '/');
 	if (!p)
-		return ct_value;
+		return value;
 
 	if ((int)(dmflags->value) & DF_MODELTEAMS)
 	{
 		*p = 0;
-		return ct_value;
+		return value;
 	}
 
 	// if ((int)(dmflags->value) & DF_SKINTEAMS)
