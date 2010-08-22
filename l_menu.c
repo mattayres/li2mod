@@ -27,8 +27,6 @@
 #define MENU_X 32
 #define MENU_Y 32
 
-static char MenuLine[80];
-
 void Menu_Create(edict_t *ent, int startline, int endline) {
 	if(ent->menu)
 		Menu_Destroy(ent);
@@ -136,6 +134,7 @@ void Menu_Destroy(edict_t *ent) {
 #define MARGIN_X 16
 
 char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
+	static char line[80];
 	char right[20] = "";
 	char string[40];
 	char format[40];
@@ -230,10 +229,10 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 		colored = true;
 	}
 
-	snprintf(MenuLine, sizeof(MenuLine), "xv %d yv %d string%s \"%s\" ", MENU_X + ent->menu->xoff + x + 2, 
+	snprintf(line, sizeof(line), "xv %d yv %d string%s \"%s\" ", MENU_X + ent->menu->xoff + x + 2, 
 		MENU_Y + ent->menu->yoff + menuline->line * 8, colored ? "2" : "", string);
 
-	return MenuLine;
+	return line;
 }
 
 qboolean Menu_IsLineUsed(menu_t *menu, int num) {
