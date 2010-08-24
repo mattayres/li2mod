@@ -28,6 +28,10 @@
 #include "net.h"
 #include "strl.h"
 
+#ifdef WIN32
+#define socklen_t int
+#endif
+
 #define MAX_LISTEN 512
 #define MAX_BACKLOG 16
 
