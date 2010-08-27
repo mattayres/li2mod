@@ -49,7 +49,7 @@ endif
 
 # This causes a backtrace to be emitted for detected buffer overflows
 # Works only on linux
-# CFLAGS+=-DSTRL_DEBUG_BACKTRACE
+# CFLAGS+=-DSTRL_DEBUG_BACKTRACE -rdynamic
 
 LDFLAGS=-ldl -lm
 SHLIBEXT=so
