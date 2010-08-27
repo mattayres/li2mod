@@ -39,6 +39,18 @@ CFLAGS=-O3
 #use these when debugging 
 #CFLAGS=-g
 
+ifeq ($(shell uname),Linux)
+CFLAGS+=-DNEED_STRLCAT -DNEED_STRLCPY
+endif
+
+# This enables warnings if a strlcat or strlcpy would have
+# caused an overflow.
+# CFLAGS+=-DSTRL_DEBUG
+
+# This causes a backtrace to be emitted for detected buffer overflows
+# Works only on linux
+# CFLAGS+=-DSTRL_DEBUG_BACKTRACE
+
 LDFLAGS=-ldl -lm
 SHLIBEXT=so
 SHLIBCFLAGS=-fPIC
