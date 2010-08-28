@@ -74,7 +74,7 @@ GAME_OBJS = \
 	lithium.o l_display.o l_fragtrak.o l_gslog.o l_hook.o \
 	l_mapqueue.o l_nocamp.o l_obit.o l_pack.o l_rune.o \
 	l_var.o l_menu.o l_admin.o l_vote.o l_net.o net.o \
-	g_ctf.o l_hscore.o zbotcheck.o
+	g_ctf.o l_hscore.o zbotcheck.o strl.o
 
 lithium/game$(ARCH).$(SHLIBEXT): $(GAME_OBJS) 
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(GAME_OBJS)
