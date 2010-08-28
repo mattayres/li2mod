@@ -1,12 +1,16 @@
 #ifndef __STRL_H
 #define __STRL_H
 
+#define _STRL_TRUNCATE (-1)
+
 #ifdef NEED_STRLCAT
-size_t strlcat(char *dest, char *src, size_t n);
+size_t strlcat_s(char *dest, char *src, size_t n, int count);
+#define strlcat(d,s,n) strlcat_s(d,s,n,_STRL_TRUNCATE)
 #endif
 
 #ifdef NEED_STRLCPY
-size_t strlcpy(char *dest, char *src, size_t n);
+size_t strlcpy_s(char *dest, char *src, size_t n, int count);
+#define strlcpy(d,s,n) strlcpy_s(d,s,n,_STRL_TRUNCATE)
 #endif
 
 #endif
