@@ -21,12 +21,13 @@ size_t strlcat_s(char *dest, char *src, size_t n, int count) {
 
 	fr = n - strlen(dest) - 1;
 
-	if (count < 0)
+	if (count < 0) {
 		copy = fr;
-	else
+		overflow = 0;
+	} else {
 		copy = MIN(count,fr);
-
-	overflow = (count > fr);
+		overflow = (count > fr);
+	}
 		
 	if (fr > 0)
 		strncat(dest, src, copy);
@@ -78,12 +79,13 @@ size_t strlcpy_s(char *dest, char *src, size_t n, int count) {
 	if (n == 0)
 		return ret;
 
-	if (count < 0)
+	if (count < 0) {
 		copy = n-1;
-	else
+		overflow = 0;
+	} else {
 		copy = MIN(count, n-1);
-
-	overflow = (count > (n-1));
+		overflow = (count > (n-1));
+	}
 
 	strncpy(dest, src, copy);
 	*(dest+copy) = '\0';
