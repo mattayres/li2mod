@@ -198,7 +198,7 @@ char *Menu_GetLine(edict_t *ent, menuline_t *menuline, qboolean sel) {
 					if(f == field) {
 						d = strchr(c, ':');
 						if(d)
-							strlcpy_s(right, c, sizeof(right), d - c + 1);
+							strlcpy_s(right, c, sizeof(right), d - c);
 						else
 							strlcpy(right, c, sizeof(right));
 					}
