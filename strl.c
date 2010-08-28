@@ -15,15 +15,17 @@ size_t strlcat_s(char *dest, char *src, size_t n, int count) {
 	size_t fr;
 	size_t ret;
 	size_t copy;
+	size_t srclen;
 	char overflow;
 
-	ret = strlen(dest) + strlen(src);
+	srclen = strlen(src);
+	ret = strlen(dest) + srclen;
 
-	fr = n - strlen(dest) - 1;
+	fr = n - (ret - srclen) - 1;
 
 	if (count < 0) {
 		copy = fr;
-		overflow = 0;
+		overflow = (ret >= n);
 	} else {
 		copy = MIN(count,fr);
 		overflow = (count > fr);
@@ -34,7 +36,11 @@ size_t strlcat_s(char *dest, char *src, size_t n, int count) {
 
 #ifdef STRL_DEBUG
 	if (overflow) {
-		fprintf(stdout, "strlcat: buffer overflow avoided (%d > %zd)\n", count, fr);
+		if (count < 0)
+			fprintf(stdout, "strlcat: buffer overflow avoided (%zd >= %zd)\n", ret, n);
+		else
+			fprintf(stdout, "strlcat_s: buffer overflow avoided (%zd >= %zd)\n", (ret - srclen)+copy, n);
+	
 #ifdef STRL_DEBUG_BACKTRACE
 		{
 			void* array[10];
@@ -44,7 +50,7 @@ size_t strlcat_s(char *dest, char *src, size_t n, int count) {
 			char s[64];
 			size_t sl;
 
-			sl = MIN(strlen(src),63);
+			sl = MIN(srclen,63);
 			strncpy(s, src, sl);
 			s[63] = '\0';
 
@@ -81,10 +87,10 @@ size_t strlcpy_s(char *dest, char *src, size_t n, int count) {
 
 	if (count < 0) {
 		copy = n-1;
-		overflow = 0;
+		overflow = (ret >= n);
 	} else {
 		copy = MIN(count, n-1);
-		overflow = (count > (n-1));
+		overflow = (count >= n);
 	}
 
 	strncpy(dest, src, copy);
@@ -92,7 +98,10 @@ size_t strlcpy_s(char *dest, char *src, size_t n, int count) {
 
 #ifdef STRL_DEBUG
 	if (overflow) {
-		fprintf(stdout, "strlcpy: buffer overflow avoided (%d >= %zd)\n", count, n);
+		if (count < 0)
+			fprintf(stdout, "strlcpy: buffer overflow avoided (%zd >= %zd)\n", ret, n);
+		else
+			fprintf(stdout, "strlcpy_s: buffer overflow avoided (%d >= %zd)\n", count, n);
 #ifdef STRL_DEBUG_BACKTRACE
 		{
 			void* array[10];
