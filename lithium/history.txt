@@ -1,6 +1,14 @@
 
 Lithium II Mod release history.  I miss some things some times.  -WhiteFang
 
+v1.31
+----------------------------------------------------------------------------
+fixed, MOTD buffer overflow (from ralf)
+added, strlcpy and strlcat to safely replace strcpy and strcat (from ralf)
+fixed, runes should be dropped for reuse if player goes into observer mode
+added, don't repeat the same map if it was just voted
+added, time left to top of CTF scoreboard
+
 v1.30 - Jan 2010
 ----------------------------------------------------------------------------
 elapsed, over 10 years
