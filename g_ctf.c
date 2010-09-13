@@ -1717,8 +1717,11 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 
 	if(level.intermissiontime) {
 		strlcat(string, Lithium_GetAd(j + 24), sizeof(string));
-	} else
+	} else {
+		int sec = (int)(timelimit->value * 60 + empty_time - level.time);
+		strlcat(string, va("xv 0 yv -8 cstring \"Time left is %d:%02d\" ", sec / 60, sec % 60), sizeof(string));
 		strlcat(string, va("xv 0 yv %d cstring \"Press 0 for Lithium II menu\" ", j + 24), sizeof(string));
+	}
 
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
