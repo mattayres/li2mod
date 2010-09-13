@@ -25,7 +25,7 @@
 #include "g_local.h"
 
 float lithium_ver = 1.31;
-int lithium_beta = 2;
+int lithium_beta = 3;
 
 char lithium_version[16];
 char lithium_modname[48];
@@ -92,7 +92,7 @@ void Lithium_InitGame(void) {
 		snprintf(lithium_version, sizeof(lithium_version), "%1.2f", lithium_ver);
 	else
 		snprintf(lithium_version, sizeof(lithium_version), "%1.2f-beta%d", lithium_ver, lithium_beta);
-	snprintf(lithium_modname, sizeof(lithium_modname), "Lithium II Mod [NDC ed] v%s", lithium_version);
+	snprintf(lithium_modname, sizeof(lithium_modname), "Lithium II Mod v%s", lithium_version);
 
 	sscanf(gi.cvar("version", 0, 0)->string, "%f", &qver);
 
@@ -200,7 +200,7 @@ void Lithium_InitLevel(void) {
 	if(first->value == 2)
 		first->value = 0;
 
-	gi.dprintf("Lithium II Mod [NDC ed] v%s\n", lithium_version);
+	gi.dprintf("Lithium II Mod v%s\n", lithium_version);
 #ifdef GIT_HASH
 	gi.dprintf("GIT hash " GIT_HASH "\n");
 #endif
@@ -698,6 +698,8 @@ qboolean Lithium_Observer(edict_t *ent, qboolean check) {
 	ent->place = 0;
 
 	ent->client->chase_target = NULL;
+
+	Rune_Drop(ent);
 
 	return true;
 }
