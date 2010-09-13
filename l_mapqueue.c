@@ -232,6 +232,10 @@ char *Mapqueue_GetMapName(void) {
 	if(use_vwep->value && !Q_stricmp(map, "city3") && maps > 1)
 		return Mapqueue_GetMapName();
 
+	// Don't repeat the current map
+	if (!first->value && !Q_stricmp(map, level.mapname))
+		return Mapqueue_GetMapName();
+
 	return map;
 }
 
