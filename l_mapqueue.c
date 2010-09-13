@@ -235,8 +235,10 @@ char *Mapqueue_GetMapName(void) {
 		return Mapqueue_GetMapName();
 
 	// Don't repeat the same map if it was just voted
-	if (last_override_map && !Q_stricmp(map, last_override_map))
+	if (last_override_map && !Q_stricmp(map, last_override_map)) {
+		last_override_map = NULL;
 		return Mapqueue_GetMapName();
+	}
 
 	return map;
 }
