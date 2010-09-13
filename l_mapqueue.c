@@ -35,6 +35,7 @@ lvar_t *mapqueue_resetonvote;
 qboolean resetqueue = false;
 
 char *override_map = NULL;
+char *last_override_map = NULL;
 extern qboolean admin_override;
 
 char start_cfg[64] = "";
@@ -72,6 +73,7 @@ edict_t *Mapqueue_EndDMLevel(void) {
 
 	if(override_map) {
 		map = override_map;
+		last_override_map = override_map;
 		override_map = NULL;
 		admin_override = false;
 		resetqueue = mapqueue_resetonvote->value;
@@ -232,8 +234,8 @@ char *Mapqueue_GetMapName(void) {
 	if(use_vwep->value && !Q_stricmp(map, "city3") && maps > 1)
 		return Mapqueue_GetMapName();
 
-	// Don't repeat the current map
-	if (!first->value && !Q_stricmp(map, level.mapname))
+	// Don't repeat the same map if it was just voted
+	if (last_override_map && !Q_stricmp(map, last_override_map))
 		return Mapqueue_GetMapName();
 
 	return map;
