@@ -1,6 +1,6 @@
 
                 =======================================
-                   Lithium II Mod v1.30 for Quake II
+                   Lithium II Mod v1.31 for Quake II
                 =======================================
 
 By Matt "WhiteFang" Ayres, matt@lithium.com
