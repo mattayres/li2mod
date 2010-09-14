@@ -8,6 +8,9 @@ added, strlcpy and strlcat to safely replace strcpy and strcat (from ralf)
 fixed, runes should be dropped for reuse if player goes into observer mode
 added, don't repeat the same map if it was just voted
 added, time left to top of CTF scoreboard
+fixed, rune spawning was broken if resist rune was disabled
+fixed, safety couldn't be disabled by setting use_safety to 0
+fixed, consistency of regen rune timing
 
 v1.30 - Jan 2010
 ----------------------------------------------------------------------------
