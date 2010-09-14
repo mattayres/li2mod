@@ -36,6 +36,7 @@ lvar_t *rune_resist;
 lvar_t *rune_strength;
 lvar_t *rune_regen;
 lvar_t *rune_regenmax;
+lvar_t *rune_regencap;
 lvar_t *rune_vampire;
 lvar_t *rune_vampiremax;
 
@@ -78,6 +79,7 @@ void Rune_InitGame(void) {
 	rune_strength = lvar("rune_strength", "2.0", "#.##", VAR_RUNE);
 	rune_regen = lvar("rune_regen", "0.25", "#.##", VAR_RUNE);
 	rune_regenmax = lvar("rune_regenmax", "200", "###", VAR_RUNE);
+	rune_regencap = lvar("rune_regencap", "3.5", "#.###", VAR_RUNE);
 	rune_vampire = lvar("rune_vampire", "0.5", "#.##", VAR_RUNE);
 	rune_vampiremax = lvar("rune_vampiremax", "200", "###", VAR_RUNE);
 
@@ -249,7 +251,7 @@ void Rune_Touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf
 	}
 
 	other->rune = self->rune;
-	other->client->regen_health = (float)other->health;
+	other->client->regen_remainder = 0;
 
 	other->client->ps.stats[STAT_PICKUP_ICON] = gi.imageindex("k_pyramid");
 	for(i = 0; i < NUM_RUNES; i++)
@@ -342,21 +344,17 @@ void Rune_ClientFrame(edict_t *player) {
 		gi.cprintf(player, PRINT_HIGH, "Admin has disabled the rune you have.\n");
 	}
 
-	if(player->rune & RUNE_REGEN) {
-		if(player->client->regen_time < level.time - 0.1) {
-			if(player->health < rune_regenmax->value) {
-				float newhealth;
-				if(player->health != (int)player->client->regen_health)
-					player->client->regen_health = (float)player->health;
-				newhealth = rune_regenmax->value / player->client->regen_health;
-				if(newhealth > 3.5)
-					newhealth = 3.5;
-				player->client->regen_health += newhealth * rune_regen->value;
-				player->health = (int)player->client->regen_health;
-			}
-			player->client->regen_time = level.time;
-		}
-		if(player->health < rune_regenmax->value && level.framenum % 25 == 0)
+	if(player->rune & RUNE_REGEN && player->health < rune_regenmax->value) {
+		float health = player->health + player->client->regen_remainder;
+		float newhealth = rune_regenmax->value / health;
+		if(newhealth > rune_regencap->value)
+			newhealth = rune_regencap->value;
+		newhealth *= rune_regen->value * 0.625;
+		health += newhealth;
+		player->health = (int)health;
+		player->client->regen_remainder = health - (float)player->health;
+
+		if(level.framenum % 25 == 0)
 			gi.sound(player, CHAN_AUTO, gi.soundindex(rune_regen_sound->string), 1, ATTN_NORM, 0);
 	}
 }

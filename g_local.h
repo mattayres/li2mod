@@ -999,8 +999,7 @@ struct gclient_s
 	float last_rune_time;
 	edict_t *drop_rune;
 	float drop_rune_time;
-	float regen_time;
-	float regen_health;
+	float regen_remainder;
 
 	float decamp_time;
 	int decamp_num;
