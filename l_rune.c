@@ -140,14 +140,14 @@ void Rune_RunFrame(void) {
 		}
 
 		// find which rune there are fewest of
-		lowest = rune_count[0];
+		lowest = -1;
 		for(i = 0; i < NUM_RUNES; i++)
-			if((int)rune_flags->value & 1 << i && rune_count[i] < lowest)
+			if((int)rune_flags->value & 1 << i && (lowest == -1 || rune_count[i] < lowest))
 				lowest = rune_count[i];
 
 		i = j = rand() % NUM_RUNES;
 		do {
-			if(rune_count[i] == lowest && (int)rune_flags->value & 1 << i) {
+			if((lowest == -1 || rune_count[i] == lowest) && (int)rune_flags->value & 1 << i) {
 				Rune_Spawn(ent->s.origin, 1 << i);
 				rune_count[i]++;
 				rune_total++;
