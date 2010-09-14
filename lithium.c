@@ -750,7 +750,7 @@ void Lithium_PutClientInServer(edict_t *ent) {
 	NoCamp_PutClientInServer(ent);
 	Var_PutClientInServer(ent);
 
-	if(safety_time->value)
+	if(use_safety->value && safety_time->value)
 		ent->lithium_flags |= LITHIUM_ATTACKWAIT;
 
 	if(start_weapon->value == 1) ent->client->newweapon = FindItem("blaster");
@@ -765,7 +765,7 @@ void Lithium_PutClientInServer(edict_t *ent) {
 	else if(start_weapon->value == 10) ent->client->newweapon = FindItem("bfg");
 	else NoAmmoWeaponChange(ent);
 	
-	if(safety_time->value)
+	if(use_safety->value && safety_time->value)
 		ent->safety_time = level.time + safety_time->value;
 	else
 		ent->safety_time = 0;
