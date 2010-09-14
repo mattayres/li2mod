@@ -28,6 +28,7 @@ lvar_t *use_runes;
 lvar_t *rune_minbound;
 lvar_t *rune_life;
 lvar_t *rune_perplayer;
+lvar_t *rune_spawnpersecond;
 lvar_t *rune_min;
 lvar_t *rune_max;
 
@@ -69,6 +70,7 @@ void Rune_InitGame(void) {
 
 	rune_flags = lvar("rune_flags", "31", "##", VAR_RUNE);
 	rune_perplayer = lvar("rune_perplayer", "0.6", "#.##", VAR_RUNE);
+	rune_spawnpersecond = lvar("rune_spawnpersecond", "1", "#", VAR_RUNE);
 	rune_life = lvar("rune_life", "20", "##", VAR_RUNE);
 	rune_min = lvar("rune_min", "3", "##", VAR_RUNE);
 	rune_max = lvar("rune_max", "12", "##", VAR_RUNE);
@@ -105,7 +107,7 @@ void Rune_Reset(void) {
 
 void Rune_RunFrame(void) {
 	edict_t *ent;
-	int i, j, lowest;
+	int i, j, lowest, x;
 	static int counter = -10;
 
 	// only check once per second
@@ -120,42 +122,44 @@ void Rune_RunFrame(void) {
 		return;
 	if(rune_flags->value >= 1 << NUM_RUNES)
 		return;
-	if(rune_total >= rune_max->value)
-		return;
-	if(rune_total >= rune_min->value && rune_total >= (int)((float)countplayers() * rune_perplayer->value))
-		return;
 
-	// find an entity to sprout from
-	while(1) {
-		ent = &g_edicts[(int)(random() * globals.num_edicts)];
-		if(!ent->inuse)
-			continue;
-		if(ent->client)
-			continue;
-		break;
-	}
+	for(x = 0; x < rune_spawnpersecond->value; x++) {
+		if(rune_total >= rune_max->value)
+			return;
+		if(rune_total >= rune_min->value && rune_total >= (int)((float)countplayers() * rune_perplayer->value))
+			return;
 
-	// find which rune there are fewest of
-	lowest = rune_count[0];
-	for(i = 0; i < NUM_RUNES; i++)
-		if((int)rune_flags->value & 1 << i && rune_count[i] < lowest)
-			lowest = rune_count[i];
-
-	i = j = rand() % NUM_RUNES;
-	do {
-		if(rune_count[i] == lowest && (int)rune_flags->value & 1 << i) {
-			Rune_Spawn(ent->s.origin, 1 << i);
-			rune_count[i]++;
-			rune_total++;
+		// find an entity to sprout from
+		while(1) {
+			ent = &g_edicts[(int)(random() * globals.num_edicts)];
+			if(!ent->inuse)
+				continue;
+			if(ent->client)
+				continue;
 			break;
 		}
 
-		i++;
-		if(i == NUM_RUNES)
-			i = 0;
-	}
-	while(i != j);
+		// find which rune there are fewest of
+		lowest = rune_count[0];
+		for(i = 0; i < NUM_RUNES; i++)
+			if((int)rune_flags->value & 1 << i && rune_count[i] < lowest)
+				lowest = rune_count[i];
 
+		i = j = rand() % NUM_RUNES;
+		do {
+			if(rune_count[i] == lowest && (int)rune_flags->value & 1 << i) {
+				Rune_Spawn(ent->s.origin, 1 << i);
+				rune_count[i]++;
+				rune_total++;
+				break;
+			}
+
+			i++;
+			if(i == NUM_RUNES)
+				i = 0;
+		}
+		while(i != j);
+	}
 }
 
 edict_t *Rune_Spawn(vec3_t origin, int type) {
