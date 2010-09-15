@@ -615,7 +615,7 @@ void Lithium_ClientBegin(edict_t *ent) {
 	FragTrak_ClientBegin(ent);
 	LNet_ClientBegin(ent);
 
-	if(use_startobserver->value || (use_startchasecam->value && !(ctf->value && !ent->client->resp.ctf_team))) {
+	if(use_startobserver->value || use_startchasecam->value) {
 		Lithium_Observer(ent, false);
 		if(use_startchasecam->value)
 			ent->lithium_flags |= LITHIUM_GOCHASECAM | LITHIUM_CHASELEADER;
