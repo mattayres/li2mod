@@ -25,7 +25,7 @@
 #include "g_local.h"
 
 float lithium_ver = 1.31;
-int lithium_beta = 6;
+int lithium_beta = 7;
 
 char lithium_version[16];
 char lithium_modname[48];
@@ -649,6 +649,11 @@ qboolean Lithium_Observer(edict_t *ent, qboolean check) {
 	if(ent->client->hook_out)
 		return false;
 
+	if (ent->solid != SOLID_NOT) {
+		CTFDeadDropFlag(ent);
+		CTFDeadDropTech(ent);
+	}
+
 	gi.setmodel(ent, "");
 	ent->movetype = MOVETYPE_NOCLIP;
 	ent->client->ps.gunindex = 0;
@@ -676,9 +681,6 @@ qboolean Lithium_Observer(edict_t *ent, qboolean check) {
 	ent->s.effects = 0;
 	ent->s.sound = 0;
 	///---------------
-
-	CTFDeadDropFlag(ent);
-	CTFDeadDropTech(ent);
 
 	// clean up frame nums?
 	ent->client->ps.gunframe = 0;
