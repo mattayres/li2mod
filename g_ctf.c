@@ -749,16 +749,24 @@ static void CTFDropFlagTouch(edict_t *ent, edict_t *other, cplane_t *plane, csur
 
 static void CTFDropFlagThink(edict_t *ent)
 {
+	qboolean returned;
+
 	// auto return the flag
 	// reset flag will remove ourselves
 	if (strcmp(ent->classname, "item_flag_team1") == 0) {
 		CTFResetFlag(CTF_TEAM1);
 		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n",
 			CTFTeamName(CTF_TEAM1));
+		returned = true;
 	} else if (strcmp(ent->classname, "item_flag_team2") == 0) {
 		CTFResetFlag(CTF_TEAM2);
 		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n",
 			CTFTeamName(CTF_TEAM2));
+		returned = true;
+	}
+
+	if (returned) {
+		gi.sound (ent, CHAN_RELIABLE+CHAN_NO_PHS_ADD+CHAN_VOICE, gi.soundindex("ctf/flagret.wav"), 1, ATTN_NONE, 0);
 	}
 }
 
