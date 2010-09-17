@@ -11,6 +11,8 @@ added, time left to top of CTF scoreboard
 fixed, rune spawning was broken if resist rune was disabled
 fixed, safety couldn't be disabled by setting use_safety to 0
 fixed, consistency of regen rune timing
+fixed, chasecam mode didn't work if CTF was enabled
+added, CTF flag return sound when it's returned for timeout
 
 v1.30 - Jan 2010
 ----------------------------------------------------------------------------
