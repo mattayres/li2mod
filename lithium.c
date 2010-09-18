@@ -536,7 +536,8 @@ void Lithium_ClientBegin(edict_t *ent) {
 	ent->admin = 0;
 	ent->client->last_hook_time = 0;
 	ent->last_sound_time = 0;
-	ent->client->resp.ctf_team = 0;
+	if (ctf->value)
+		ent->client->resp.ctf_team = CTF_NOTEAM;
 
 	ent->lithium_flags |= LITHIUM_STATUSBAR;
 
@@ -650,10 +651,10 @@ qboolean Lithium_Observer(edict_t *ent, qboolean check) {
 	if(ent->client->hook_out)
 		return false;
 
-	if (ent->solid != SOLID_NOT) {
+	if (ctf->value && ent->solid != SOLID_NOT) {
 		CTFDeadDropFlag(ent);
 		CTFDeadDropTech(ent);
-		ent->client->resp.ctf_team = 0;
+		ent->client->resp.ctf_team = CTF_NOTEAM;
 	}
 
 	gi.setmodel(ent, "");
