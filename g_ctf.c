@@ -2330,6 +2330,11 @@ void CTFSay_Team(edict_t *who, char *msg)
 	char *p;
 	edict_t *cl_ent;
 
+	//WF
+	if(!Lithium_CmdSay(who))
+		return;
+	//WF
+
 	outmsg[0] = 0;
 
 	if (*msg == '\"') {
@@ -2338,7 +2343,7 @@ void CTFSay_Team(edict_t *who, char *msg)
 	}
 
 	for (p = outmsg; *msg; msg++) {
-		gi.dprintf("%d\n", p - outmsg);
+//		gi.dprintf("%d\n", p - outmsg);
 		if (*msg == '%') {
 			switch (*++msg) {
 				case 'l' :
