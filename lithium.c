@@ -163,7 +163,7 @@ void Lithium_InitGame(void) {
 	Hook_InitGame();
 	Vote_InitGame();
 
-	LNet_InitGame();
+//	LNet_InitGame();
 
 	// must be last for features var
 	Var_InitGame();
