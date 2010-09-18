@@ -25,7 +25,7 @@
 #include "g_local.h"
 
 float lithium_ver = 1.31;
-int lithium_beta = 7;
+int lithium_beta = 8;
 
 char lithium_version[16];
 char lithium_modname[48];
@@ -536,6 +536,7 @@ void Lithium_ClientBegin(edict_t *ent) {
 	ent->admin = 0;
 	ent->client->last_hook_time = 0;
 	ent->last_sound_time = 0;
+	ent->client->resp.ctf_team = 0;
 
 	ent->lithium_flags |= LITHIUM_STATUSBAR;
 
@@ -652,6 +653,7 @@ qboolean Lithium_Observer(edict_t *ent, qboolean check) {
 	if (ent->solid != SOLID_NOT) {
 		CTFDeadDropFlag(ent);
 		CTFDeadDropTech(ent);
+		ent->client->resp.ctf_team = 0;
 	}
 
 	gi.setmodel(ent, "");
