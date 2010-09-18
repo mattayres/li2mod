@@ -34,16 +34,14 @@ Main Features
      weapons clients will start with.
    * Server configuration and toggles implemented as cvars.  This allows
      .cfg files for startup and instant changes on the server console.
-   * Based on v3.20 game source, and compiled for Windows x86, Linux x86,
-     Linux AXP, Solaris x86, and Solaris Sparc.
+   * Based on v3.20 game source.
+   * Compiled for Windows 32-bit, Linux 32-bit, and Linux 64-bit.
    * VWep support, see which weapon your enemy is using!  (requires a pak).
    * GSLog frag logging (Gibstats Log Standard).
    * Fast weapon switching.
    * Admin list feature with access levels and passwords.
    * Option for Pro-Rocket specs (via procket.cfg).
    * Map voting system.
-   * Lithium Master Server support (see lmaster.txt).
-   * Multi-server chat system (see lmaster.txt).
    * Overflow protection.
    * Integrated ThreeWave CTF II.
    * High scores feature.
@@ -103,7 +101,6 @@ the MOTD to your liking by editing the motd.txt in the lithium directory
 (or ctf directory for CTF mode).
 
 If you don't want your server listed publicly, set public 0 in your config.
-If you don't want your server connecting to the lmaster, set use_lmaster 0.
 
 
 Administration
