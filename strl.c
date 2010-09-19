@@ -27,8 +27,8 @@ size_t strlcat_s(char *dest, char *src, size_t n, int count) {
 		copy = fr;
 		overflow = (ret >= n);
 	} else {
-		copy = MIN(count,fr);
-		overflow = (count > fr);
+		copy = MIN(count,(int)fr);
+		overflow = (count > (int)fr);
 	}
 		
 	if (fr > 0)
@@ -89,8 +89,8 @@ size_t strlcpy_s(char *dest, char *src, size_t n, int count) {
 		copy = n-1;
 		overflow = (ret >= n);
 	} else {
-		copy = MIN(count, n-1);
-		overflow = (count >= n);
+		copy = MIN(count, (int)n-1);
+		overflow = (count >= (int)n);
 	}
 
 	strncpy(dest, src, copy);

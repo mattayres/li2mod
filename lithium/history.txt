@@ -3,8 +3,10 @@ Lithium II Mod release history.  I miss some things some times.  -WhiteFang
 
 v1.31 - Sep 2010
 ----------------------------------------------------------------------------
+added, source repository to github at http://github.com/WhiteFang34/li2mod
 fixed, MOTD buffer overflow (from ralf)
 added, use strlcpy/strlcat to protect against buffer overflows (from ralf)
+thanks, ralf for all of the improvements, cleanup and updates for VC 2010
 fixed, runes should be dropped for reuse if player goes into observer mode
 added, don't repeat the same map if it was just voted on
 added, time left to top of CTF scoreboard
@@ -17,6 +19,7 @@ added, CTF flag return sound when it's returned for timeout
 fixed, force CTF team menu after going into observer, chasecam or next map
 added, muzzle logic to say_team command
 disabled, lmaster support for now (and removed from docs)
+thanks, again to d3s for facilitating this release!
 
 v1.30 - Jan 2010
 ----------------------------------------------------------------------------
