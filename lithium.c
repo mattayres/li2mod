@@ -24,8 +24,8 @@
 
 #include "g_local.h"
 
-float lithium_ver = 1.31;
-int lithium_beta = 0;
+float lithium_ver = 1.32;
+int lithium_beta = 1;
 
 char lithium_version[16];
 char lithium_modname[48];
@@ -516,8 +516,6 @@ void Lithium_ClientBegin(edict_t *ent) {
  	ent->place = 0;
 	ent->ping_total = 0;
 	ent->ping_count = 1;
-	ent->centerprint = gi.TagMalloc(1200, TAG_LEVEL);
-	ent->centerprint2 = gi.TagMalloc(1200, TAG_LEVEL);
 	ent->safety_warns = 0;
 	ent->suicides = 0;
 	ent->play_frames = 0;

@@ -1189,9 +1189,9 @@ struct edict_s
 	int trak_num;
 	int ping_total;
 	int ping_count;
-	char *centerprint;
+	char centerprint[1200];
 	float centerprint_time;
-	char *centerprint2;
+	char centerprint2[1200];
 	int play_frames;
 	int board;
 	int sel;
