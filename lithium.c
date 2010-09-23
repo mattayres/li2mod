@@ -25,7 +25,7 @@
 #include "g_local.h"
 
 float lithium_ver = 1.32;
-int lithium_beta = 1;
+int lithium_beta = 2;
 
 char lithium_version[16];
 char lithium_modname[48];
